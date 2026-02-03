@@ -86,3 +86,18 @@ Set `LLM_PROVIDER` in your `.env` file to make it permanent.
 
 - [Prompt Engineering Guide](https://www.promptingguide.ai/)
 - [OpenAI Prompt Engineering Best Practices](https://platform.openai.com/docs/guides/prompt-engineering)
+
+## Learning Resources
+
+### Raw SDK vs LangChain Comparison
+New to LLM APIs? Start here to understand what's happening under the hood:
+
+```bash
+python 05_prompt_engineering_fundamentals/code/00_raw_sdk_comparison.py
+```
+
+This example shows the **same task** using:
+1. **Raw OpenAI SDK** - Explicit, transparent, great for learning
+2. **LangChain** - Abstracted, convenient, great for productivity
+
+Understanding both helps you debug issues and choose the right tool.

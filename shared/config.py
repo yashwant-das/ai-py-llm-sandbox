@@ -41,6 +41,7 @@ class Settings(BaseSettings):
     
     # Application Settings
     log_level: str = "INFO"
+    llm_provider: str = "lmstudio"  # lmstudio, ollama, openai, auto
     project_root: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     
     class Config:

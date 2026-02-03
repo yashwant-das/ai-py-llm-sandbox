@@ -21,9 +21,11 @@ By the end of this topic, you will:
 │   ├── tokens_and_embeddings.md
 │   └── inference_vs_training.md
 └── experiments/
-    ├── token_counting.py          # Count tokens in prompts
-    ├── explore_temperature.py     # Visualize temperature effects
-    └── top_p_sampling_demo.py     # Nucleus sampling exploration
+    ├── 01_token_counting.py           # Count tokens (tiktoken)
+    ├── 02_temperature_sampling.py     # Temperature effects
+    ├── 03_context_window.py           # Context limits
+    ├── 04_streaming_responses.py      # Streaming demo
+    └── 05_model_comparison.py         # Compare endpoints
 ```
 
 ## Key Concepts
@@ -52,13 +54,57 @@ By the end of this topic, you will:
 
 ## Running Experiments
 
-```bash
-# Count tokens in different texts
-python 02_genai_fundamentals/experiments/token_counting.py
+All experiments use the **raw OpenAI SDK** (no LangChain, no shared modules) for maximum transparency.
 
-# See temperature effects
-python 02_genai_fundamentals/experiments/explore_temperature.py
+### Configure Your Endpoint
+
+Before running, edit the experiment files to set your endpoint (top of each file):
+
+```python
+# Option 1: LM Studio (default)
+BASE_URL = "http://127.0.0.1:1234/v1"
+API_KEY = "lm-studio"
+MODEL = "openai/gpt-oss-20b"
+
+# Option 2: Ollama (uncomment if using)
+# BASE_URL = "http://localhost:11434/v1"
+# API_KEY = "ollama"
+# MODEL = "llama3.1"
+
+# Option 3: OpenAI (uncomment if using)
+# BASE_URL = "https://api.openai.com/v1"
+# API_KEY = "sk-your-key-here"
+# MODEL = "gpt-4o-mini"
 ```
+
+### Run the Experiments
+
+```bash
+# 1. Token counting (no LLM needed - uses tiktoken)
+python 02_genai_fundamentals/experiments/01_token_counting.py
+
+# 2. Temperature and sampling
+python 02_genai_fundamentals/experiments/02_temperature_sampling.py
+
+# 3. Context window limits
+python 02_genai_fundamentals/experiments/03_context_window.py
+
+# 4. Streaming responses
+python 02_genai_fundamentals/experiments/04_streaming_responses.py
+
+# 5. Compare multiple endpoints
+python 02_genai_fundamentals/experiments/05_model_comparison.py
+```
+
+### What Each Experiment Teaches
+
+| Experiment | Concept | Key Takeaway |
+|------------|---------|--------------|
+| `01_token_counting.py` | Tokenization | Tokens ≠ words; affects pricing and limits |
+| `02_temperature_sampling.py` | Sampling | Temperature controls randomness |
+| `03_context_window.py` | Context limits | Input + output must fit in window |
+| `04_streaming_responses.py` | Streaming | Better UX with token-by-token display |
+| `05_model_comparison.py` | Evaluation | Compare speed, quality, cost across models |
 
 ## Cross-References
 
