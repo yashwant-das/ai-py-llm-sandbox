@@ -65,9 +65,14 @@ Final Answer: It's 18°C and sunny in Paris.
 
 ## Running the Examples
 
+All examples support multiple LLM providers via the `LLM_PROVIDER` environment variable (defaults to `lmstudio`).
+
 ```bash
-# ReAct agent with LangChain
+# ReAct agent with LangChain (uses LM Studio by default)
 python 18_ai_agents/fundamentals/01_react_pattern.py
+
+# Use Ollama instead
+LLM_PROVIDER=ollama python 18_ai_agents/fundamentals/01_react_pattern.py
 
 # Manual ReAct implementation (no frameworks)
 python 18_ai_agents/fundamentals/02_react_from_scratch.py
@@ -78,6 +83,13 @@ python 18_ai_agents/fundamentals/03_plan_and_execute.py
 # LangGraph state machines
 python 18_ai_agents/frameworks/langgraph_agents.py
 ```
+
+### Provider Options
+Set `LLM_PROVIDER` environment variable or add to `.env`:
+- `lmstudio` (default) - LM Studio on port 1234
+- `ollama` - Ollama on port 11434  
+- `openai` - OpenAI API (requires key)
+- `auto` - Tries LM Studio → Ollama → OpenAI
 
 ## Cross-References
 

@@ -17,16 +17,18 @@ Topic: 05_prompt_engineering_fundamentals
 Refer to: ../README.md for more information
 """
 
+import os
 import sys
 from pathlib import Path
 
 # Add project root to path for shared imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from shared import get_lmstudio_llm
+from shared import get_llm
 
-# Initialize LLM
-llm = get_lmstudio_llm(temperature=0.1)
+# Initialize LLM (reads LLM_PROVIDER from env, defaults to "lmstudio")
+# Options: "lmstudio", "ollama", "openai", or "auto" (tries all)
+llm = get_llm(provider=os.getenv("LLM_PROVIDER", "lmstudio"), temperature=0.1)
 
 print("=" * 80)
 print("ZERO-SHOT PROMPTING EXAMPLES")

@@ -98,6 +98,27 @@ OLLAMA_API_KEY=ollama
 OLLAMA_DEFAULT_MODEL=llama3.1
 ```
 
+**Switching Providers in Code:**
+All examples use the `LLM_PROVIDER` environment variable to select the provider:
+```bash
+# Use LM Studio (default)
+python 05_prompt_engineering_fundamentals/code/01_zero_shot.py
+
+# Use Ollama
+LLM_PROVIDER=ollama python 05_prompt_engineering_fundamentals/code/01_zero_shot.py
+
+# Use OpenAI (requires API key)
+LLM_PROVIDER=openai python 05_prompt_engineering_fundamentals/code/01_zero_shot.py
+
+# Auto-detect (tries LM Studio → Ollama → OpenAI)
+LLM_PROVIDER=auto python 05_prompt_engineering_fundamentals/code/01_zero_shot.py
+```
+
+Or set it permanently in `.env`:
+```
+LLM_PROVIDER=ollama
+```
+
 ### 4. Verify Setup
 
 ```bash

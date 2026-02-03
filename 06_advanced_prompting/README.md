@@ -52,9 +52,14 @@ Generate multiple solution paths, evaluate each, and select or combine the best.
 
 ## Running the Examples
 
+All examples support multiple LLM providers via the `LLM_PROVIDER` environment variable (defaults to `lmstudio`).
+
 ```bash
-# Chain-of-Thought reasoning
+# Chain-of-Thought reasoning (uses LM Studio by default)
 python 06_advanced_prompting/code/01_chain_of_thought.py
+
+# Use Ollama instead
+LLM_PROVIDER=ollama python 06_advanced_prompting/code/01_chain_of_thought.py
 
 # Self-consistency with voting
 python 06_advanced_prompting/code/02_self_consistency.py
@@ -74,6 +79,13 @@ python 06_advanced_prompting/code/06_auto_prompt_engineering.py
 # System-2 reflective reasoning
 python 06_advanced_prompting/code/07_system2_activations.py
 ```
+
+### Provider Options
+Set `LLM_PROVIDER` environment variable or add to `.env`:
+- `lmstudio` (default) - LM Studio on port 1234
+- `ollama` - Ollama on port 11434
+- `openai` - OpenAI API (requires key)
+- `auto` - Tries LM Studio → Ollama → OpenAI
 
 ## Cross-References
 

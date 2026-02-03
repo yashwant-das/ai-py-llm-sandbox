@@ -28,10 +28,12 @@ import re
 # Add project root to path for shared imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from shared import get_lmstudio_llm
+import os
+from shared import get_llm
 
-# Initialize LLM with higher temperature for diverse samples
-llm = get_lmstudio_llm(temperature=0.7)
+# Initialize LLM (provider configurable via LLM_PROVIDER env var)
+# Options: "lmstudio", "ollama", "openai", or "auto"
+llm = get_llm(provider=os.getenv("LLM_PROVIDER", "lmstudio"), temperature=0.7)
 
 print("=" * 80)
 print("SELF-CONSISTENCY / ENSEMBLE METHODS")

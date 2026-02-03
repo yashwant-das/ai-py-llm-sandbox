@@ -34,13 +34,14 @@ from langchain.agents import create_react_agent, AgentExecutor
 from langchain_core.tools import tool
 from langchain import hub
 
-from shared import get_lmstudio_llm, get_settings
+from shared import get_llm, get_settings
 
 # Load environment variables
 load_dotenv()
 
-# Initialize LLM
-llm = get_lmstudio_llm(temperature=0.1)
+# Initialize LLM (provider configurable via LLM_PROVIDER env var)
+# Options: "lmstudio", "ollama", "openai", or "auto"
+llm = get_llm(provider=os.getenv("LLM_PROVIDER", "lmstudio"), temperature=0.1)
 
 
 # Define tools

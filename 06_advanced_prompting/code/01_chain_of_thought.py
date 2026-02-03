@@ -25,10 +25,12 @@ from pathlib import Path
 # Add project root to path for shared imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from shared import get_lmstudio_llm
+import os
+from shared import get_llm
 
-# Initialize LLM
-llm = get_lmstudio_llm(temperature=0.1)
+# Initialize LLM (provider configurable via LLM_PROVIDER env var)
+# Options: "lmstudio", "ollama", "openai", or "auto"
+llm = get_llm(provider=os.getenv("LLM_PROVIDER", "lmstudio"), temperature=0.1)
 
 print("=" * 80)
 print("CHAIN-OF-THOUGHT PROMPTING EXAMPLES")
