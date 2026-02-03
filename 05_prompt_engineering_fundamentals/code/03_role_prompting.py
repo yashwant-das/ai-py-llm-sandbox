@@ -14,17 +14,21 @@ Tips:
 - Be specific about the role ("You are a...")
 - Define the audience if relevant
 - Combine with other techniques (CoT, few-shot) for best results
+
+Topic: 05_prompt_engineering_fundamentals
+Refer to: ../README.md for more information
 """
 
-from langchain_openai import ChatOpenAI
+import sys
+from pathlib import Path
 
-# Initialize LLM (LM Studio)
-llm = ChatOpenAI(
-    model="openai/gpt-oss-20b",
-    temperature=0.7,  # Higher temperature for creative role responses
-    openai_api_key="lm-studio",
-    openai_api_base="http://127.0.0.1:1234/v1",
-)
+# Add project root to path for shared imports
+sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
+
+from shared import get_lmstudio_llm
+
+# Initialize LLM
+llm = get_lmstudio_llm(temperature=0.7)
 
 print("=" * 80)
 print("ROLE/PERSONA PROMPTING EXAMPLES")

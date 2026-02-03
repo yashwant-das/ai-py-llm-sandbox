@@ -15,20 +15,24 @@ Techniques:
 2. Few-shot with format examples
 3. JSON schema specification
 4. Using LangChain's output parsers
+
+Topic: 06_advanced_prompting
+Refer to: ../README.md for more information
 """
 
+import sys
+from pathlib import Path
 import json
-from langchain_openai import ChatOpenAI
+
+# Add project root to path for shared imports
+sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
+
+from shared import get_lmstudio_llm
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.pydantic_v1 import BaseModel, Field
 
-# Initialize LLM (LM Studio)
-llm = ChatOpenAI(
-    model="openai/gpt-oss-20b",
-    temperature=0.1,
-    openai_api_key="lm-studio",
-    openai_api_base="http://127.0.0.1:1234/v1",
-)
+# Initialize LLM
+llm = get_lmstudio_llm(temperature=0.1)
 
 print("=" * 80)
 print("STRUCTURED OUTPUT EXAMPLES")

@@ -1,8 +1,74 @@
+# GenAI Systems Playground - Requirements
+# ========================================
+# Install: pip install -r requirements.txt
+
+# =============================================================================
+# Core Dependencies (Required for all topics)
+# =============================================================================
 langchain>=0.3.0
 langchain-openai>=0.2.0
 langchainhub>=0.1.0
-langgraph>=0.2.0
-ddgs>=9.10.0
-google-search-results>=2.4.2
-python-dotenv>=1.0.0
 pydantic>=2.0.0
+pydantic-settings>=2.0.0
+python-dotenv>=1.0.0
+
+# =============================================================================
+# Topic-Specific Dependencies (Install as needed)
+# =============================================================================
+
+# Topic 3: LLM Landscape / Topic 9,16: Vector Search
+# --------------------------------------------------
+# chromadb>=0.5.0
+# faiss-cpu>=1.8.0
+# sentence-transformers>=3.0.0
+
+# Topic 4,14: Safety & Security
+# ------------------------------
+# transformers>=4.40.0  # For moderation models
+# detoxify>=0.5.0       # Toxicity detection
+
+# Topic 6: Advanced Prompting / Topic 18: Agents
+# -----------------------------------------------
+langgraph>=0.2.0
+
+# Topic 12: Function Calling / Topic 18: Agents
+# ----------------------------------------------
+ddgs>=9.10.0          # DuckDuckGo search (no API key needed)
+google-search-results>=2.4.2  # SerpAPI (optional)
+
+# Topic 17: Hugging Face Ecosystem
+# ---------------------------------
+# transformers>=4.40.0
+# datasets>=2.19.0
+# accelerate>=0.30.0
+# peft>=0.11.0
+# bitsandbytes>=0.43.0
+# huggingface-hub>=0.23.0
+
+# Topic 19: Fine-Tuning
+# ----------------------
+# peft>=0.11.0
+# trl>=0.8.0
+# wandb>=0.17.0
+
+# Topic 20: Small Language Models / Edge
+# ---------------------------------------
+# llama-cpp-python>=0.2.0
+# onnx>=1.16.0
+# onnxruntime>=1.18.0
+
+# =============================================================================
+# Development & Testing
+# =============================================================================
+pytest>=8.0.0
+pytest-asyncio>=0.23.0
+black>=24.0.0
+ruff>=0.4.0
+mypy>=1.10.0
+
+# =============================================================================
+# Optional: Low-Code Frameworks (Topic 11)
+# =============================================================================
+# gradio>=4.0.0
+# streamlit>=1.35.0
+# chainlit>=1.0.0

@@ -1,18 +1,33 @@
-# OS / editor cruft
+# =============================================================================
+# GenAI Systems Playground - Git Ignore
+# =============================================================================
+
+# =============================================================================
+# OS / Editor Cruft
+# =============================================================================
 .DS_Store
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
 
-# Byte-compiled / optimized / DLL files
+# Cursor AI editor
+.cursorignore
+.cursorindexingignore
+
+# =============================================================================
+# Python - Byte-compiled / Optimized / Cache
+# =============================================================================
 __pycache__/
 *.py[cod]
 *$py.class
-
-# C extensions
 *.so
-
-# Distribution / packaging
 .Python
+
+# =============================================================================
+# Python - Distribution / Packaging
+# =============================================================================
 build/
 develop-eggs/
 dist/
@@ -31,17 +46,22 @@ share/python-wheels/
 *.egg
 MANIFEST
 
-# PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
-*.manifest
-*.spec
+# =============================================================================
+# Python - Virtual Environments
+# =============================================================================
+.env
+.env.*
+!.env.example
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
 
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
-
-# Unit test / coverage reports
+# =============================================================================
+# Python - Testing & Quality
+# =============================================================================
 htmlcov/
 .tox/
 .nox/
@@ -55,134 +75,167 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 cover/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+.ruff_cache/
 
-# Translations
-*.mo
-*.pot
+# =============================================================================
+# Python - Jupyter / IPython
+# =============================================================================
+.ipynb_checkpoints
+profile_default/
+ipython_config.py
 
-# Django stuff:
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
+# =============================================================================
+# Python - Tools
+# =============================================================================
+# PyInstaller
+*.manifest
+*.spec
 
-# Flask stuff:
-instance/
-.webassets-cache
-
-# Scrapy stuff:
-.scrapy
-
-# Sphinx documentation
-docs/_build/
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
 
 # PyBuilder
 .pybuilder/
 target/
 
-# Jupyter Notebook
-.ipynb_checkpoints
+# PEP 582
+__pypackages__/
 
-# IPython
-profile_default/
-ipython_config.py
-
-# pyenv
-#   For a library or package, you might want to ignore these files since the code is
-#   intended to run in multiple environments; otherwise, check them in:
-# .python-version
-
-# pipenv
-#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
-#   However, in case of collaboration, if having platform-specific dependencies or dependencies
-#   having no cross-platform support, pipenv may install dependencies that don't work, or not
-#   install all needed dependencies.
-#Pipfile.lock
-
-# UV
-#   Similar to Pipfile.lock, it is generally recommended to include uv.lock in version control.
-#   This is especially recommended for binary packages to ensure reproducibility, and is more
-#   commonly ignored for libraries.
-#uv.lock
-
-# poetry
-#   Similar to Pipfile.lock, it is generally recommended to include poetry.lock in version control.
-#   This is especially recommended for binary packages to ensure reproducibility, and is more
-#   commonly ignored for libraries.
-#   https://python-poetry.org/docs/basic-usage/#commit-your-poetrylock-file-to-version-control
-#poetry.lock
-
-# pdm
-#   Similar to Pipfile.lock, it is generally recommended to include pdm.lock in version control.
-#pdm.lock
-#   pdm stores project-wide configurations in .pdm.toml, but it is recommended to not include it
-#   in version control.
-#   https://pdm.fming.dev/latest/usage/project/#working-with-version-control
+# PDM
 .pdm.toml
 .pdm-python
 .pdm-build/
 
-# PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
-__pypackages__/
+# PyPI
+.pypirc
 
-# Celery stuff
+# =============================================================================
+# GenAI Specific - Data & Models
+# =============================================================================
+
+# Large data files
+data/raw/*
+data/processed/*
+data/embeddings/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/embeddings/.gitkeep
+
+# Model files (GGUF, checkpoints, etc.)
+*.gguf
+*.gguf.*
+*.bin
+*.safetensors
+*.pt
+*.pth
+*.ckpt
+*.pkl
+*.pickle
+models/
+checkpoints/
+
+# Model download caches
+.cache/
+.cache/huggingface/
+.cache/torch/
+.cache/transformers/
+pretrained_models/
+
+# =============================================================================
+# GenAI Specific - Vector Databases
+# =============================================================================
+chroma_db/
+chroma/
+.chroma/
+*.chroma
+vectordb/
+vectorstore/
+faiss_index/
+*.faiss
+
+# =============================================================================
+# GenAI Specific - Generated Content
+# =============================================================================
+# Generated images
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.gif
+outputs/
+output/
+generated/
+
+# Keep example images if needed
+!assets/**/*.png
+!assets/**/*.jpg
+!docs/**/*.png
+
+# =============================================================================
+# GenAI Specific - Logs & Outputs
+# =============================================================================
+logs/
+*.log
+wandb/
+mlruns/
+runs/
+experiments/*/results/
+experiments/*/outputs/
+
+# =============================================================================
+# GenAI Specific - API & Secrets
+# =============================================================================
+# Environment files (already in Python section, but emphasized)
+# .env
+
+# Service account keys
+*.json.key
+service-account*.json
+credentials.json
+
+# =============================================================================
+# Misc
+# =============================================================================
+# SQLite databases
+db.sqlite3
+db.sqlite3-journal
+*.db
+
+# Local settings
+local_settings.py
+
+# Scrapy
+.scrapy
+
+# Sphinx
+docs/_build/
+
+# MkDocs
+/site
+
+# Flask
+instance/
+.webassets-cache
+
+# Celery
 celerybeat-schedule
 celerybeat.pid
 
-# SageMath parsed files
+# SageMath
 *.sage.py
 
-# Environments
-.env
-.env.*
-!.env.example
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
+# Cython
+cython_debug/
 
-# Spyder project settings
+# Spyder
 .spyderproject
 .spyproject
 
-# Rope project settings
+# Rope
 .ropeproject
-
-# mkdocs documentation
-/site
-
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# Pyre type checker
-.pyre/
-
-# pytype static type analyzer
-.pytype/
-
-# Cython debug symbols
-cython_debug/
-
-# PyCharm
-#  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
-#  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
-#  and can be added to the global gitignore or merged into this file.  For a more nuclear
-#  option (not recommended) you can uncomment the following to ignore the entire idea folder.
-#.idea/
-
-# Ruff stuff:
-.ruff_cache/
-
-# PyPI configuration file
-.pypirc
-
-# Cursor  
-#  Cursor is an AI-powered code editor.`.cursorignore` specifies files/directories to 
-#  exclude from AI features like autocomplete and code analysis. Recommended for sensitive data
-#  refer to https://docs.cursor.com/context/ignore-files
-.cursorignore
-.cursorindexingignore

@@ -16,27 +16,31 @@ Key Components:
 4. Repeat until done
 
 This is the foundation of many agent frameworks like LangChain agents.
+
+Topic: 18_ai_agents
+Refer to: ../README.md for more information
 """
 
+import sys
+from pathlib import Path
 import os
+
+# Add project root to path for shared imports
+sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 
 from ddgs import DDGS
 from dotenv import load_dotenv
 from langchain.agents import create_react_agent, AgentExecutor
 from langchain_core.tools import tool
-from langchain_openai import ChatOpenAI
 from langchain import hub
+
+from shared import get_lmstudio_llm, get_settings
 
 # Load environment variables
 load_dotenv()
 
-# Initialize LLM (LM Studio)
-llm = ChatOpenAI(
-    model="openai/gpt-oss-20b",
-    temperature=0.1,
-    openai_api_key="lm-studio",
-    openai_api_base="http://127.0.0.1:1234/v1",
-)
+# Initialize LLM
+llm = get_lmstudio_llm(temperature=0.1)
 
 
 # Define tools

@@ -15,19 +15,23 @@ Techniques:
 2. Answer averaging (for numerical answers)
 3. Consistency checking (verify reasoning)
 4. Confidence-based selection
+
+Topic: 06_advanced_prompting
+Refer to: ../README.md for more information
 """
 
+import sys
+from pathlib import Path
 from collections import Counter
 import re
-from langchain_openai import ChatOpenAI
+
+# Add project root to path for shared imports
+sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
+
+from shared import get_lmstudio_llm
 
 # Initialize LLM with higher temperature for diverse samples
-llm = ChatOpenAI(
-    model="openai/gpt-oss-20b",
-    temperature=0.7,  # Higher temp to get diverse responses
-    openai_api_key="lm-studio",
-    openai_api_base="http://127.0.0.1:1234/v1",
-)
+llm = get_lmstudio_llm(temperature=0.7)
 
 print("=" * 80)
 print("SELF-CONSISTENCY / ENSEMBLE METHODS")

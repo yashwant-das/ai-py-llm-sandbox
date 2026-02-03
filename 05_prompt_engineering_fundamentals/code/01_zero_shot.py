@@ -12,17 +12,21 @@ When to use:
 Tips:
 - Be specific and clear in your instructions
 - Include constraints directly in the prompt
+
+Topic: 05_prompt_engineering_fundamentals
+Refer to: ../README.md for more information
 """
 
-from langchain_openai import ChatOpenAI
+import sys
+from pathlib import Path
 
-# Initialize LLM (LM Studio)
-llm = ChatOpenAI(
-    model="openai/gpt-oss-20b",
-    temperature=0.1,
-    openai_api_key="lm-studio",
-    openai_api_base="http://127.0.0.1:1234/v1",
-)
+# Add project root to path for shared imports
+sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
+
+from shared import get_lmstudio_llm
+
+# Initialize LLM
+llm = get_lmstudio_llm(temperature=0.1)
 
 print("=" * 80)
 print("ZERO-SHOT PROMPTING EXAMPLES")
