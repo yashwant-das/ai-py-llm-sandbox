@@ -26,7 +26,7 @@ from pathlib import Path
 import os
 
 # Add project root to path for shared imports
-sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from ddgs import DDGS
 from dotenv import load_dotenv

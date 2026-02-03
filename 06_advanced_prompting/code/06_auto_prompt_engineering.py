@@ -16,6 +16,12 @@ When to use:
 Reference: Zhou et al. "Large Language Models Are Human-Level Prompt Engineers"
 """
 
+import sys
+from pathlib import Path
+
+# Add project root to path for shared imports
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+
 from shared import get_lmstudio_llm
 
 # Initialize LLM

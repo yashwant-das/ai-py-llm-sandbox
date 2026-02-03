@@ -15,6 +15,12 @@ When to use:
 Reference: Yao et al. "Tree of Thoughts: Deliberate Problem Solving with Large Language Models"
 """
 
+import sys
+from pathlib import Path
+
+# Add project root to path for shared imports
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+
 from shared import get_lmstudio_llm
 
 # Initialize LLM

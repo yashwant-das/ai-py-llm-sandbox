@@ -2,6 +2,7 @@
 
 Provides consistent initialization for:
 - Local LLMs via LM Studio
+- Local LLMs via Ollama
 - OpenAI API (and compatible endpoints)
 
 Usage:
@@ -56,6 +57,52 @@ def get_lmstudio_llm(
     )
 
 
+def get_ollama_llm(
+    model: Optional[str] = None,
+    temperature: float = 0.1,
+    max_tokens: Optional[int] = None,
+    **kwargs: Any
+) -> ChatOpenAI:
+    """Initialize LLM client for Ollama (local inference).
+    
+    Assumes Ollama is running (`ollama serve` or as a service).
+    Uses OpenAI-compatible API endpoint.
+    
+    Args:
+        model: Model identifier (e.g., "llama3.1", "mistral", "qwen2.5")
+               Run `ollama list` to see available models
+        temperature: Sampling temperature (0.0 = deterministic, 1.0 = creative)
+        max_tokens: Maximum tokens to generate
+        **kwargs: Additional arguments passed to ChatOpenAI
+        
+    Returns:
+        Configured ChatOpenAI instance pointing to Ollama
+        
+    Example:
+        >>> llm = get_ollama_llm(model="llama3.1", temperature=0.7)
+        >>> response = llm.invoke("Explain quantum computing")
+        
+    Raises:
+        ConnectionError: If Ollama server is not accessible (at runtime)
+        
+    Notes:
+        - Install Ollama: https://ollama.com/
+        - Pull models: `ollama pull llama3.1`
+        - Start server: `ollama serve` (or runs automatically)
+        - OpenAI-compatible API at http://localhost:11434/v1
+    """
+    settings = get_settings()
+    
+    return ChatOpenAI(
+        model=model or settings.ollama_default_model,
+        temperature=temperature,
+        max_tokens=max_tokens,
+        api_key=settings.ollama_api_key,  # Usually "ollama" or empty
+        base_url=settings.ollama_base_url,
+        **kwargs
+    )
+
+
 def get_openai_llm(
     model: str = "gpt-4o-mini",
     temperature: float = 0.1,
@@ -104,7 +151,8 @@ def get_llm(provider: str = "lmstudio", **kwargs: Any) -> ChatOpenAI:
     """Factory function to get LLM by provider name.
     
     Args:
-        provider: "lmstudio", "openai", or "auto" (tries lmstudio first)
+        provider: One of "lmstudio", "ollama", "openai", or "auto" 
+                  ("auto" tries lmstudio, then ollama, then openai)
         **kwargs: Arguments passed to specific provider function
         
     Returns:
@@ -117,13 +165,34 @@ def get_llm(provider: str = "lmstudio", **kwargs: Any) -> ChatOpenAI:
     
     if provider == "lmstudio":
         return get_lmstudio_llm(**kwargs)
+    elif provider == "ollama":
+        return get_ollama_llm(**kwargs)
     elif provider == "openai":
         return get_openai_llm(**kwargs)
     elif provider == "auto":
-        # Try LM Studio first, fall back to OpenAI
+        # Try LM Studio first, then Ollama, then OpenAI
+        errors = []
+        
         try:
             return get_lmstudio_llm(**kwargs)
-        except Exception:
+        except Exception as e:
+            errors.append(f"LM Studio: {e}")
+        
+        try:
+            return get_ollama_llm(**kwargs)
+        except Exception as e:
+            errors.append(f"Ollama: {e}")
+        
+        try:
             return get_openai_llm(**kwargs)
+        except Exception as e:
+            errors.append(f"OpenAI: {e}")
+            
+        raise ConnectionError(
+            f"Could not connect to any LLM provider. Errors: {'; '.join(errors)}"
+        )
     else:
-        raise ValueError(f"Unknown provider: {provider}. Use 'lmstudio' or 'openai'.")
+        raise ValueError(
+            f"Unknown provider: {provider}. "
+            f"Use 'lmstudio', 'ollama', 'openai', or 'auto'."
+        )

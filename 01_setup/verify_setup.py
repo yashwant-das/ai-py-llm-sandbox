@@ -1,10 +1,16 @@
 """
 Setup Verification Script
 =========================
-Test connectivity to LM Studio and verify environment configuration.
+Test connectivity to LM Studio and Ollama, verify environment configuration.
 
 Run this after setup to ensure everything is working:
     python 01_setup/verify_setup.py
+
+Checks:
+- Python version (3.9+)
+- Required packages installed
+- LM Studio or Ollama server reachable
+- Model responding to queries
 """
 
 import sys
@@ -80,6 +86,41 @@ def check_lmstudio_connection():
         return False
 
 
+def check_ollama_connection():
+    """Test connection to Ollama server."""
+    print("\nChecking Ollama connectivity...")
+    
+    try:
+        from shared import get_ollama_llm, get_settings
+        
+        settings = get_settings()
+        print(f"  Base URL: {settings.ollama_base_url}")
+        print(f"  Default Model: {settings.ollama_default_model}")
+        
+        # Try to initialize LLM
+        llm = get_ollama_llm()
+        
+        # Simple test prompt
+        response = llm.invoke("Say 'Ollama ready!' and nothing else.")
+        
+        if "ready" in response.content.lower():
+            print(f"  ✓ Ollama responding")
+            print(f"  Response: {response.content.strip()}")
+            return True
+        else:
+            print(f"  ✗ Unexpected response: {response.content[:100]}")
+            return False
+            
+    except Exception as e:
+        print(f"  ✗ Connection failed: {e}")
+        print("\n  Troubleshooting:")
+        print("  1. Ensure Ollama is installed: https://ollama.com/")
+        print("  2. Run: ollama serve")
+        print(f"  3. Pull a model: ollama pull {get_settings().ollama_default_model}")
+        print("  4. Verify .env configuration")
+        return False
+
+
 def main():
     """Run all verification checks."""
     print("=" * 60)
@@ -90,7 +131,15 @@ def main():
     
     results.append(("Python Version", check_python_version()))
     results.append(("Required Packages", check_packages()))
-    results.append(("LM Studio Connection", check_lmstudio_connection()))
+    
+    # Check at least one LLM provider
+    lmstudio_ok = check_lmstudio_connection()
+    ollama_ok = check_ollama_connection()
+    
+    if lmstudio_ok or ollama_ok:
+        results.append(("LLM Provider", True))
+    else:
+        results.append(("LLM Provider (LM Studio or Ollama)", False))
     
     print("\n" + "=" * 60)
     print("Verification Summary")
@@ -109,6 +158,9 @@ def main():
         return 0
     else:
         print("\n⚠️  Some checks failed. Please fix the issues above.")
+        print("\nNote: You need at least one LLM provider configured:")
+        print("  - LM Studio: https://lmstudio.ai/")
+        print("  - Ollama: https://ollama.com/")
         return 1
 
 

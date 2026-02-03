@@ -24,6 +24,11 @@ class Settings(BaseSettings):
     default_model: str = "openai/gpt-oss-20b"
     default_temperature: float = 0.1
     
+    # Ollama Configuration (Local LLM alternative)
+    ollama_base_url: str = "http://localhost:11434/v1"
+    ollama_api_key: str = "ollama"
+    ollama_default_model: str = "llama3.1"
+    
     # OpenAI Configuration (Optional - for cloud models)
     openai_api_key: Optional[str] = None
     openai_base_url: Optional[str] = None  # For OpenAI-compatible APIs

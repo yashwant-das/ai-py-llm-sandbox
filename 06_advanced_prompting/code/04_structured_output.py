@@ -25,7 +25,7 @@ from pathlib import Path
 import json
 
 # Add project root to path for shared imports
-sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from shared import get_lmstudio_llm
 from langchain_core.output_parsers import JsonOutputParser

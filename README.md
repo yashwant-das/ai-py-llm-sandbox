@@ -86,17 +86,27 @@ Topics 17-21: Specialized (OSS, agents, fine-tuning)
 ```
 
 ### Local-First with Cloud Options
-- Default: Local LLMs via LM Studio (privacy, cost, control)
-- Optional: Cloud APIs (OpenAI, Groq, Together) when specified
+- **Default**: Local LLMs via LM Studio or Ollama (privacy, cost, control)
+  - LM Studio: GUI-based, great for experimentation
+  - Ollama: CLI-based, simple model management
+- **Optional**: Cloud APIs (OpenAI, Groq, Together) when specified
 - All examples work with OpenAI-compatible endpoints
 
 ## Running Examples
 
 ### Prerequisites
-1. **LM Studio** (recommended for local LLMs)
-   - Download from [lmstudio.ai](https://lmstudio.ai/)
-   - Load a model (e.g., `openai/gpt-oss-20b`, `Llama-3.1-8B`)
-   - Start the local server on port 1234
+
+Choose **one** of the following local LLM options:
+
+**Option A: LM Studio** (GUI-based, recommended for beginners)
+- Download from [lmstudio.ai](https://lmstudio.ai/)
+- Load a model (e.g., `openai/gpt-oss-20b`, `Llama-3.1-8B`)
+- Start the local server on port 1234
+
+**Option B: Ollama** (CLI-based, simpler setup)
+- Install from [ollama.com](https://ollama.com/)
+- Pull a model: `ollama pull llama3.1`
+- Server runs automatically at port 11434
 
 2. **Python Environment**
    ```bash
@@ -173,5 +183,6 @@ MIT License — See [LICENSE](LICENSE) for details.
 - [Prompt Engineering Guide](https://www.promptingguide.ai/)
 - [LangChain Documentation](https://python.langchain.com/)
 - [LM Studio](https://lmstudio.ai/)
+- [Ollama](https://ollama.com/)
 - [Hugging Face](https://huggingface.co/docs)
 - [OWASP LLM Top 10](https://owasp.org/www-project-top-10-for-large-language-model-applications/)
