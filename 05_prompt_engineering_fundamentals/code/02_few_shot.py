@@ -3,35 +3,18 @@ Few-Shot Prompting
 ==================
 Providing examples in the prompt to guide the model's response format
 and reasoning pattern. This helps the model understand the expected output.
-
-When to use:
-- Specific output format is required
-- The task has a pattern the model needs to learn
-- Zero-shot results are inconsistent
-
-Tips:
-- Use diverse examples covering edge cases
-- Keep examples concise but representative
-- 3-5 examples usually sufficient
-
-Topic: 05_prompt_engineering_fundamentals
-Refer to: ../README.md for more information
 """
 
-import os
 import sys
 from pathlib import Path
 
 # Add project root to path for shared imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from shared import get_llm
-
-# Initialize LLM (provider configurable via LLM_PROVIDER env var)
-llm = get_llm(provider=os.getenv("LLM_PROVIDER", "lmstudio"), temperature=0.1)
+from utils.llm_client import get_completion
 
 print("=" * 80)
-print("FEW-SHOT PROMPTING EXAMPLES")
+print("FEW-SHOT PROMPTING EXAMPLES (NVIDIA API)")
 print("=" * 80)
 
 # Example 1: Sentiment with examples
@@ -49,9 +32,9 @@ Sentiment: Neutral
 
 Text: "The food was okay, nothing special."
 Sentiment:"""
-response1 = llm.invoke(prompt1)
+response1 = get_completion(prompt1)
 print(f"Prompt:\n{prompt1}")
-print(f"Response: {response1.content}")
+print(f"Response: {response1}")
 
 # Example 2: Named Entity Recognition
 print("\n--- Example 2: Named Entity Recognition ---")
@@ -65,9 +48,9 @@ Entities: Barack Obama (Person), Hawaii (Location), US (Organization)
 
 Text: "Tesla is building a factory in Berlin, said Elon Musk."
 Entities:"""
-response2 = llm.invoke(prompt2)
+response2 = get_completion(prompt2)
 print(f"Prompt:\n{prompt2}")
-print(f"Response: {response2.content}")
+print(f"Response: {response2}")
 
 # Example 3: Text transformation (translation style)
 print("\n--- Example 3: Casual to Formal Conversion ---")
@@ -81,11 +64,11 @@ Formal: "I appreciate your assistance yesterday."
 
 Casual: "Gotta run, catch you later!"
 Formal:"""
-response3 = llm.invoke(prompt3)
+response3 = get_completion(prompt3)
 print(f"Prompt:\n{prompt3}")
-print(f"Response: {response3.content}")
+print(f"Response: {response3}")
 
-# Example 4: Classification with reasoning pattern
+# Example 4: Pattern Recognition
 print("\n--- Example 4: Pattern Recognition ---")
 prompt4 = """Given a word, provide a word that rhymes with it.
 
@@ -100,11 +83,11 @@ Rhyme: night
 
 Word: green
 Rhyme:"""
-response4 = llm.invoke(prompt4)
+response4 = get_completion(prompt4)
 print(f"Prompt:\n{prompt4}")
-print(f"Response: {response4.content}")
+print(f"Response: {response4}")
 
-# Example 5: Complex extraction
+# Example 5: Structured Data Extraction
 print("\n--- Example 5: Structured Data Extraction ---")
 prompt5 = """Extract contact information in the format: Name | Email | Phone
 
@@ -116,9 +99,9 @@ Result: Jane Smith | jane.smith@company.org | 555-5678
 
 Text: "Mike Johnson - mike.j@example.com - office: 555-9999"
 Result:"""
-response5 = llm.invoke(prompt5)
+response5 = get_completion(prompt5)
 print(f"Prompt:\n{prompt5}")
-print(f"Response: {response5.content}")
+print(f"Response: {response5}")
 
 print("\n" + "=" * 80)
 print("Key Takeaway: Few-shot prompting guides the model by showing patterns.")

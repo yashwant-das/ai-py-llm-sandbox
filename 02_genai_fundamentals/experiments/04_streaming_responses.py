@@ -3,7 +3,7 @@ Streaming Responses Experiment
 ==============================
 See how streaming gives partial results before completion.
 
-Uses raw OpenAI SDK with streaming enabled. No shared modules.
+Uses raw OpenAI SDK with streaming enabled via NVIDIA API.
 
 Concepts:
 - Streaming vs non-streaming
@@ -11,28 +11,25 @@ Concepts:
 - Perceived performance
 """
 
-from openai import OpenAI
+import sys
+from pathlib import Path
 import time
 
-# Configure your endpoint
-BASE_URL = "http://127.0.0.1:1234/v1"
-API_KEY = "lm-studio"
-MODEL = "openai/gpt-oss-20b"
+# Add project root to path for shared imports
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-# Option 2: Ollama
-# BASE_URL = "http://localhost:11434/v1"
-# API_KEY = "ollama"
-# MODEL = "llama3.1"
+from shared import get_nvidia_client, get_settings
 
 print("=" * 70)
-print("STREAMING RESPONSES EXPERIMENT")
+print("STREAMING RESPONSES EXPERIMENT (NVIDIA API)")
 print("=" * 70)
-print(f"Endpoint: {BASE_URL}")
-print(f"Model: {MODEL}")
+
+# Initialize client
+client = get_nvidia_client()
+settings = get_settings()
+
+print(f"Model: {settings.default_model}")
 print()
-
-client = OpenAI(base_url=BASE_URL, api_key=API_KEY)
-
 
 print("1. NON-STREAMING (Default)")
 print("-" * 70)
@@ -42,7 +39,7 @@ prompt = "Explain photosynthesis in 3 sentences."
 
 start = time.time()
 response = client.chat.completions.create(
-    model=MODEL,
+    model=settings.default_model,
     messages=[{"role": "user", "content": prompt}],
     stream=False,  # Default
 )
@@ -62,7 +59,7 @@ start = time.time()
 first_token_time = None
 
 stream = client.chat.completions.create(
-    model=MODEL,
+    model=settings.default_model,
     messages=[{"role": "user", "content": prompt}],
     stream=True,  # Enable streaming
 )
@@ -76,7 +73,7 @@ for chunk in stream:
         content = chunk.choices[0].delta.content
         print(content, end="", flush=True)
         full_response += content
-        
+
         if first_token_time is None:
             first_token_time = time.time() - start
 
@@ -94,7 +91,7 @@ print("Accessing chunk metadata during streaming.\n")
 prompt = "Count from 1 to 5."
 
 stream = client.chat.completions.create(
-    model=MODEL,
+    model=settings.default_model,
     messages=[{"role": "user", "content": prompt}],
     stream=True,
 )
@@ -132,21 +129,22 @@ print("\n\n5. SIMPLE STREAMING WRAPPER")
 print("-" * 70)
 print("A reusable pattern for your applications.\n")
 
-def stream_completion(prompt, model=MODEL):
+
+def stream_completion(prompt, model=settings.default_model):
     """Stream a completion with simple output."""
     stream = client.chat.completions.create(
         model=model,
         messages=[{"role": "user", "content": prompt}],
         stream=True,
     )
-    
+
     print(f"Q: {prompt}")
     print("A: ", end="", flush=True)
-    
+
     for chunk in stream:
         if chunk.choices[0].delta.content:
             print(chunk.choices[0].delta.content, end="", flush=True)
-    
+
     print()
 
 
@@ -165,5 +163,4 @@ print("""
 3. chunk.choices[0].delta.content has the new text
 4. Great UX - users see response build up
 5. First token latency is what users perceive as "speed"
-6. Slightly more complex code but worth it for interactivity
 """)

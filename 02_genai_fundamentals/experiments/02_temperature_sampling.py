@@ -3,7 +3,7 @@ Temperature and Sampling Experiment
 ====================================
 See how temperature affects LLM output randomness.
 
-Uses raw OpenAI SDK directly. Configure your endpoint below.
+Uses raw OpenAI SDK directly via NVIDIA API.
 
 Concepts:
 - Temperature (0.0 = deterministic, 1.0+ = creative)
@@ -11,39 +11,31 @@ Concepts:
 - Reproducibility vs creativity
 """
 
-from openai import OpenAI
+import sys
+from pathlib import Path
 
-# Configure your endpoint here (no .env needed)
-# Option 1: LM Studio
-BASE_URL = "http://127.0.0.1:1234/v1"
-API_KEY = "lm-studio"
-MODEL = "openai/gpt-oss-20b"  # or whatever model you loaded
+# Add project root to path for shared imports
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-# Option 2: Ollama (uncomment if using)
-# BASE_URL = "http://localhost:11434/v1"
-# API_KEY = "ollama"
-# MODEL = "llama3.1"
-
-# Option 3: OpenAI (uncomment if using)
-# BASE_URL = "https://api.openai.com/v1"
-# API_KEY = "sk-your-key-here"
-# MODEL = "gpt-4o-mini"
+from shared import get_nvidia_client, get_settings
 
 print("=" * 70)
-print("TEMPERATURE AND SAMPLING EXPERIMENT")
+print("TEMPERATURE AND SAMPLING EXPERIMENT (NVIDIA API)")
 print("=" * 70)
-print(f"Endpoint: {BASE_URL}")
-print(f"Model: {MODEL}")
-print()
 
 # Initialize client
-client = OpenAI(base_url=BASE_URL, api_key=API_KEY)
+client = get_nvidia_client()
+settings = get_settings()
+
+print(f"Base URL: {settings.nvidia_base_url}")
+print(f"Model: {settings.default_model}")
+print()
 
 
 def get_completion(prompt, temperature, n=1):
     """Get completion with specified temperature."""
     response = client.chat.completions.create(
-        model=MODEL,
+        model=settings.default_model,
         messages=[{"role": "user", "content": prompt}],
         temperature=temperature,
         max_tokens=50,
@@ -59,7 +51,7 @@ print("Same prompt, same output every time.\n")
 prompt = "Complete this sentence: The color of the sky is"
 for i in range(3):
     responses = get_completion(prompt, temperature=0.0)
-    print(f"  Run {i+1}: {responses[0]}")
+    print(f"  Run {i + 1}: {responses[0]}")
 
 
 print("\n\n2. TEMPERATURE = 0.7 (Balanced)")
@@ -69,17 +61,19 @@ print("Some variation, but generally coherent.\n")
 prompt = "Name a creative ice cream flavor:"
 for i in range(5):
     responses = get_completion(prompt, temperature=0.7)
-    print(f"  Run {i+1}: {responses[0]}")
+    print(f"  Run {i + 1}: {responses[0]}")
 
 
-print("\n\n3. TEMPERATURE = 1.5 (Creative/Random)")
+print("\n\n3. TEMPERATURE = 1.0+ (Creative/Random)")
 print("-" * 70)
 print("High variation, potentially less coherent.\n")
 
 prompt = "Complete: Once upon a time"
 for i in range(5):
-    responses = get_completion(prompt, temperature=1.5)
-    print(f"  Run {i+1}: {responses[0][:80]}...")
+    responses = get_completion(
+        prompt, temperature=1.0
+    )  # Nvidia models might cap effective temp differently
+    print(f"  Run {i + 1}: {responses[0][:80]}...")
 
 
 print("\n\n4. MULTIPLE SAMPLES AT SAME TEMPERATURE")

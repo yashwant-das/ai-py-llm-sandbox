@@ -17,33 +17,20 @@ except ImportError:
 
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
-    
-    # LM Studio Configuration (Local LLM)
-    lmstudio_base_url: str = "http://127.0.0.1:1234/v1"
-    lmstudio_api_key: str = "lm-studio"
-    default_model: str = "openai/gpt-oss-20b"
-    default_temperature: float = 0.1
-    
-    # Ollama Configuration (Local LLM alternative)
-    ollama_base_url: str = "http://localhost:11434/v1"
-    ollama_api_key: str = "ollama"
-    ollama_default_model: str = "llama3.1"
-    
-    # OpenAI Configuration (Optional - for cloud models)
-    openai_api_key: Optional[str] = None
-    openai_base_url: Optional[str] = None  # For OpenAI-compatible APIs
-    
-    # SerpAPI for search examples
-    serpapi_api_key: Optional[str] = None
-    
-    # Hugging Face (for Topic 17)
-    huggingface_token: Optional[str] = None
-    
+
+    # NVIDIA Configuration (Main Provider)
+    nvidia_api_key: Optional[str] = None
+    nvidia_base_url: str = "https://integrate.api.nvidia.com/v1"
+
+    # Default Models
+    # Llama 3.1 405B Instruct is a powerful model for learning
+    default_model: str = "meta/llama-3.1-405b-instruct"
+    default_temperature: float = 0.5
+
     # Application Settings
     log_level: str = "INFO"
-    llm_provider: str = "lmstudio"  # lmstudio, ollama, openai, auto
     project_root: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
@@ -53,7 +40,7 @@ class Settings(BaseSettings):
 @lru_cache()
 def get_settings() -> Settings:
     """Get cached settings instance.
-    
+
     Returns:
         Settings: Application configuration
     """
@@ -62,10 +49,10 @@ def get_settings() -> Settings:
 
 def get_data_path(subpath: str = "") -> str:
     """Get absolute path to data directory.
-    
+
     Args:
         subpath: Optional subdirectory within data/
-        
+
     Returns:
         Absolute path to data directory or subdirectory
     """

@@ -3,35 +3,18 @@ Zero-Shot Prompting
 ===================
 The simplest form of prompting - just give the model an instruction
 directly without any examples. The model relies on its pre-trained knowledge.
-
-When to use:
-- Simple, straightforward tasks
-- When the model already knows the pattern
-- Quick prototyping
-
-Tips:
-- Be specific and clear in your instructions
-- Include constraints directly in the prompt
-
-Topic: 05_prompt_engineering_fundamentals
-Refer to: ../README.md for more information
 """
 
-import os
 import sys
 from pathlib import Path
 
 # Add project root to path for shared imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from shared import get_llm
-
-# Initialize LLM (reads LLM_PROVIDER from env, defaults to "lmstudio")
-# Options: "lmstudio", "ollama", "openai", or "auto" (tries all)
-llm = get_llm(provider=os.getenv("LLM_PROVIDER", "lmstudio"), temperature=0.1)
+from utils.llm_client import get_completion
 
 print("=" * 80)
-print("ZERO-SHOT PROMPTING EXAMPLES")
+print("ZERO-SHOT PROMPTING EXAMPLES (NVIDIA API)")
 print("=" * 80)
 
 # Example 1: Simple classification
@@ -40,9 +23,9 @@ prompt1 = """Classify the sentiment of this text as Positive, Negative, or Neutr
 "I absolutely loved the movie! The acting was superb."
 
 Sentiment:"""
-response1 = llm.invoke(prompt1)
+response1 = get_completion(prompt1, temperature=0.1)
 print(f"Prompt: {prompt1}")
-print(f"Response: {response1.content}")
+print(f"Response: {response1}")
 
 # Example 2: Summarization with constraints
 print("\n--- Example 2: Summarization with Constraints ---")
@@ -54,9 +37,9 @@ optical telescope in space. Its high resolution and sensitivity allow it to
 view objects too old, distant, or faint for the Hubble Space Telescope.
 
 Summary:"""
-response2 = llm.invoke(prompt2)
+response2 = get_completion(prompt2, temperature=0.1)
 print(f"Prompt: {prompt2}")
-print(f"Response: {response2.content}")
+print(f"Response: {response2}")
 
 # Example 3: Format conversion
 print("\n--- Example 3: Format Conversion ---")
@@ -65,9 +48,9 @@ Apple was founded by Steve Jobs Steve Wozniak and Ronald Wayne in 1976
 in Cupertino California.
 
 Bullet list:"""
-response3 = llm.invoke(prompt3)
+response3 = get_completion(prompt3, temperature=0.1)
 print(f"Prompt: {prompt3}")
-print(f"Response: {response3.content}")
+print(f"Response: {response3}")
 
 # Example 4: Code generation
 print("\n--- Example 4: Code Generation ---")
@@ -75,9 +58,9 @@ prompt4 = """Write a Python function that takes a list of numbers and returns
 the sum of all even numbers in the list.
 
 Function:"""
-response4 = llm.invoke(prompt4)
+response4 = get_completion(prompt4, temperature=0.1)
 print(f"Prompt: {prompt4}")
-print(f"Response:\n{response4.content}")
+print(f"Response:\n{response4}")
 
 # Example 5: Question answering
 print("\n--- Example 5: Question Answering ---")
@@ -85,9 +68,9 @@ prompt5 = """Answer the following question concisely:
 What is the difference between HTTP and HTTPS?
 
 Answer:"""
-response5 = llm.invoke(prompt5)
+response5 = get_completion(prompt5, temperature=0.1)
 print(f"Prompt: {prompt5}")
-print(f"Response: {response5.content}")
+print(f"Response: {response5}")
 
 print("\n" + "=" * 80)
 print("Key Takeaway: Zero-shot works well for straightforward tasks where")

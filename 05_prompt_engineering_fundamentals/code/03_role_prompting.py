@@ -3,36 +3,18 @@ Role/Persona Prompting
 ======================
 Assigning a specific role or persona to the model to guide its
 response style, tone, and expertise level.
-
-When to use:
-- Need domain-specific expertise
-- Want a specific tone or style
-- Explaining complex topics to different audiences
-- Creative writing tasks
-
-Tips:
-- Be specific about the role ("You are a...")
-- Define the audience if relevant
-- Combine with other techniques (CoT, few-shot) for best results
-
-Topic: 05_prompt_engineering_fundamentals
-Refer to: ../README.md for more information
 """
 
-import os
 import sys
 from pathlib import Path
 
 # Add project root to path for shared imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from shared import get_llm
-
-# Initialize LLM (provider configurable via LLM_PROVIDER env var)
-llm = get_llm(provider=os.getenv("LLM_PROVIDER", "lmstudio"), temperature=0.7)
+from utils.llm_client import get_completion
 
 print("=" * 80)
-print("ROLE/PERSONA PROMPTING EXAMPLES")
+print("ROLE/PERSONA PROMPTING EXAMPLES (NVIDIA API)")
 print("=" * 80)
 
 # Example 1: Explaining to different audiences
@@ -45,9 +27,9 @@ prompt1 = f"""You are a PhD-level plant biologist speaking at a conference of bo
 Explain {topic}
 
 Explanation:"""
-response1 = llm.invoke(prompt1)
-print(f"ROLE: Expert Botanist to Botanists")
-print(f"Response: {response1.content[:300]}...")
+response1 = get_completion(prompt1)
+print("ROLE: Expert Botanist to Botanists")
+print(f"Response: {response1[:300]}...")
 print()
 
 # Role: Teacher to 5-year-old
@@ -55,9 +37,9 @@ prompt2 = f"""You are a kindergarten teacher explaining to a class of 5-year-old
 Explain {topic} using simple words and analogies they understand.
 
 Explanation:"""
-response2 = llm.invoke(prompt2)
-print(f"ROLE: Kindergarten Teacher")
-print(f"Response: {response2.content[:300]}...")
+response2 = get_completion(prompt2)
+print("ROLE: Kindergarten Teacher")
+print(f"Response: {response2[:300]}...")
 
 # Example 2: Domain expert consultant
 print("\n--- Example 2: Security Expert Consultant ---")
@@ -66,9 +48,9 @@ A small business owner asks you: "What are the top 3 things I should do
 to protect my business from hackers?"
 
 Provide practical, actionable advice."""
-response3 = llm.invoke(prompt3)
-print(f"ROLE: Cybersecurity Expert")
-print(f"Response:\n{response3.content}")
+response3 = get_completion(prompt3)
+print("ROLE: Cybersecurity Expert")
+print(f"Response:\n{response3}")
 
 # Example 3: Creative writing roles
 print("\n--- Example 3: Creative Writing - Different Styles ---")
@@ -77,17 +59,17 @@ story_prompt = "Write a 3-sentence description of a rainy evening in the city."
 # Role: Noir detective novelist
 prompt4 = f"""You are a noir detective novelist from the 1940s.
 {story_prompt}"""
-response4 = llm.invoke(prompt4)
-print(f"ROLE: Noir Detective Novelist")
-print(f"Response: {response4.content}")
+response4 = get_completion(prompt4)
+print("ROLE: Noir Detective Novelist")
+print(f"Response: {response4}")
 print()
 
 # Role: Optimistic children's author
 prompt5 = f"""You are an optimistic children's book author.
 {story_prompt}"""
-response5 = llm.invoke(prompt5)
-print(f"ROLE: Children's Book Author")
-print(f"Response: {response5.content}")
+response5 = get_completion(prompt5)
+print("ROLE: Children's Book Author")
+print(f"Response: {response5}")
 
 # Example 4: Critical reviewer role
 print("\n--- Example 4: Code Reviewer Role ---")
@@ -108,11 +90,11 @@ Code:
 {code_snippet}
 
 Code Review:"""
-response6 = llm.invoke(prompt6)
-print(f"ROLE: Senior Software Engineer (Code Reviewer)")
-print(f"Response:\n{response6.content}")
+response6 = get_completion(prompt6)
+print("ROLE: Senior Software Engineer (Code Reviewer)")
+print(f"Response:\n{response6}")
 
-# Example 5: Debate format with multiple roles
+# Example 5: Multi-Persona Debate
 print("\n--- Example 5: Multi-Persona Debate ---")
 topic = "Should companies allow remote work permanently?"
 
@@ -120,15 +102,15 @@ prompt7 = f"""You are participating in a debate on: "{topic}"
 
 First, argue as a CEO who wants employees in the office:
 CEO Argument:"""
-response7 = llm.invoke(prompt7)
-print(f"ROLE: CEO")
-print(f"Response: {response7.content[:200]}...")
+response7 = get_completion(prompt7)
+print("ROLE: CEO")
+print(f"Response: {response7[:200]}...")
 
-prompt8 = f"""Now argue as an employee who prefers working from home:
+prompt8 = """Now argue as an employee who prefers working from home:
 Employee Argument:"""
-response8 = llm.invoke(prompt8)
-print(f"\nROLE: Remote Employee")
-print(f"Response: {response8.content[:200]}...")
+response8 = get_completion(prompt8)
+print("\nROLE: Remote Employee")
+print(f"Response: {response8[:200]}...")
 
 # Example 6: Role with constraints
 print("\n--- Example 6: Role with Constraints ---")
@@ -141,9 +123,9 @@ Your constraints:
 A customer asks: "Where should I go for my first international trip?"
 
 Recommendation:"""
-response9 = llm.invoke(prompt9)
-print(f"ROLE: Budget Travel Agent (with constraints)")
-print(f"Response:\n{response9.content}")
+response9 = get_completion(prompt9)
+print("ROLE: Budget Travel Agent (with constraints)")
+print(f"Response:\n{response9}")
 
 print("\n" + "=" * 80)
 print("Key Takeaway: Role prompting shapes the model's expertise, tone,")

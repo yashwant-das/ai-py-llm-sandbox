@@ -5,18 +5,18 @@ Common functions for interacting with NVIDIA's cloud APIs.
 """
 
 import base64
-import os
 from pathlib import Path
 
 import requests
-from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+# Import from shared configuration (project root must be in path)
+import sys
 
-# NVIDIA API Configuration
-NVIDIA_API_KEY = os.getenv("NVIDIA_API_KEY")
-NVIDIA_BASE_URL = "https://integrate.api.nvidia.com/v1"
+project_root = str(Path(__file__).parent.parent.parent)
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+from shared import get_settings
 
 
 def generate_image(
@@ -33,17 +33,20 @@ def generate_image(
     Returns:
         Image data (bytes) or None if failed
     """
-    if not NVIDIA_API_KEY:
+    settings = get_settings()
+
+    if not settings.nvidia_api_key:
         print("❌ Error: NVIDIA_API_KEY not found in .env file")
         print("   Get your API key from: https://build.nvidia.com/")
         return None
 
     # API endpoint for image generation
-    url = f"{NVIDIA_BASE_URL}/images/generations"
+    base_url = "https://integrate.api.nvidia.com/v1"
+    url = f"{base_url}/images/generations"
 
     # Request headers
     headers = {
-        "Authorization": f"Bearer {NVIDIA_API_KEY}",
+        "Authorization": f"Bearer {settings.nvidia_api_key}",
         "Content-Type": "application/json",
     }
 

@@ -1,9 +1,19 @@
-"""Unified LLM client for prompt engineering examples.
+from shared import get_nvidia_client, get_settings
 
-This module re-exports the shared LLM providers for convenience.
-"""
 
-# Re-export from shared utilities
-from shared import get_lmstudio_llm, get_openai_llm, get_llm
+def get_completion(prompt, model=None, temperature=0.7, max_tokens=None):
+    """
+    Helper function to get a completion from the NVIDIA API using OpenAI SDK.
+    Useful for quick scripts and testing.
+    """
+    client = get_nvidia_client()
+    settings = get_settings()
 
-__all__ = ["get_lmstudio_llm", "get_openai_llm", "get_llm"]
+    response = client.chat.completions.create(
+        model=model or settings.default_model,
+        messages=[{"role": "user", "content": prompt}],
+        temperature=temperature,
+        max_tokens=max_tokens,
+    )
+
+    return response.choices[0].message.content

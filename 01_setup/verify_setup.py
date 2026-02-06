@@ -1,7 +1,7 @@
 """
 Setup Verification Script
 =========================
-Test connectivity to LM Studio and Ollama, verify environment configuration.
+Test connectivity to NVIDIA API and verify environment configuration.
 
 Run this after setup to ensure everything is working:
     uv run python 01_setup/verify_setup.py
@@ -9,8 +9,8 @@ Run this after setup to ensure everything is working:
 Checks:
 - Python version (3.10+)
 - Required packages installed
-- LM Studio or Ollama server reachable
-- Model responding to queries
+- NVIDIA API Key configured
+- Connection to NVIDIA API
 """
 
 import sys
@@ -36,15 +36,20 @@ def check_packages():
     """Verify required packages are installed."""
     print("\nChecking required packages...")
     required = [
-        "langchain",
-        "langchain_openai",
+        "openai",
         "pydantic",
+        "dotenv",
     ]
 
     all_ok = True
     for package in required:
         try:
-            __import__(package)
+            # Map package names to import names
+            import_name = package
+            if package == "dotenv":
+                import_name = "dotenv"
+
+            __import__(import_name)
             print(f"  ✓ {package}")
         except ImportError:
             print(f"  ✗ {package} (not installed)")
@@ -53,72 +58,54 @@ def check_packages():
     return all_ok
 
 
-def check_lmstudio_connection():
-    """Test connection to LM Studio server."""
-    print("\nChecking LM Studio connectivity...")
+def check_nvidia_connection():
+    """Test connection to NVIDIA API."""
+    print("\nChecking NVIDIA API connectivity...")
 
     try:
-        from shared import get_lmstudio_llm, get_settings
+        from shared import get_nvidia_client, get_settings
 
         settings = get_settings()
-        print(f"  Base URL: {settings.lmstudio_base_url}")
-        print(f"  Default Model: {settings.default_model}")
 
-        # Try to initialize LLM
-        llm = get_lmstudio_llm()
+        if not settings.nvidia_api_key or "nvapi" not in settings.nvidia_api_key:
+            print("  ✗ API Key appears missing or invalid (should start with 'nvapi-')")
+            print("    Check your .env file.")
+            return False
+
+        print(f"  Base URL: {settings.nvidia_base_url}")
+        print(f"  Model: {settings.default_model}")
+
+        # Try to initialize Client
+        client = get_nvidia_client()
 
         # Simple test prompt
-        response = llm.invoke("Say 'Setup verified!' and nothing else.")
+        response = client.chat.completions.create(
+            model=settings.default_model,
+            messages=[
+                {
+                    "role": "user",
+                    "content": "Say 'NVIDIA setup verified!' and nothing else.",
+                }
+            ],
+            max_tokens=20,
+        )
 
-        if "verified" in response.content.lower():
-            print(f"  ✓ LM Studio responding")
-            print(f"  Response: {response.content.strip()}")
+        content = response.choices[0].message.content
+
+        if content:
+            print("  ✓ NVIDIA API responding")
+            print(f"  Response: {content.strip()}")
             return True
         else:
-            print(f"  ✗ Unexpected response: {response.content[:100]}")
+            print("  ✗ Empty response from API")
             return False
 
     except Exception as e:
         print(f"  ✗ Connection failed: {e}")
         print("\n  Troubleshooting:")
-        print("  1. Ensure LM Studio is running")
-        print("  2. Check server is enabled on port 1234")
-        print("  3. Verify .env configuration")
-        return False
-
-
-def check_ollama_connection():
-    """Test connection to Ollama server."""
-    print("\nChecking Ollama connectivity...")
-
-    try:
-        from shared import get_ollama_llm, get_settings
-
-        settings = get_settings()
-        print(f"  Base URL: {settings.ollama_base_url}")
-        print(f"  Default Model: {settings.ollama_default_model}")
-
-        # Try to initialize LLM
-        llm = get_ollama_llm()
-
-        # Simple test prompt
-        response = llm.invoke("Say 'Ollama ready!' and nothing else.")
-
-        if "ready" in response.content.lower():
-            print(f"  ✓ Ollama responding")
-            print(f"  Response: {response.content.strip()}")
-            return True
-        else:
-            print(f"  ✗ Unexpected response: {response.content[:100]}")
-            return False
-
-    except Exception as e:
-        print(f"  ✗ Connection failed: {e}")
-        print("\n  Troubleshooting:")
-        print("  1. Ensure Ollama is installed: https://ollama.com/")
-        print("  2. Run: ollama serve")
-        print(f"  3. Pull a model: ollama pull {get_settings().ollama_default_model}")
-        print("  4. Verify .env configuration")
+        print("  1. Verify NVIDIA_API_KEY in .env")
+        print("  2. Check internet connection")
+        print("  3. Ensure you have credits/access at build.nvidia.com")
         return False
 
 
@@ -132,15 +119,7 @@ def main():
 
     results.append(("Python Version", check_python_version()))
     results.append(("Required Packages", check_packages()))
-
-    # Check at least one LLM provider
-    lmstudio_ok = check_lmstudio_connection()
-    ollama_ok = check_ollama_connection()
-
-    if lmstudio_ok or ollama_ok:
-        results.append(("LLM Provider", True))
-    else:
-        results.append(("LLM Provider (LM Studio or Ollama)", False))
+    results.append(("NVIDIA API Connection", check_nvidia_connection()))
 
     print("\n" + "=" * 60)
     print("Verification Summary")
@@ -155,13 +134,12 @@ def main():
     if all_passed:
         print("\n🎉 Setup verified! You're ready to start.")
         print("\nNext: Try running an example:")
-        print("  python 05_prompt_engineering_fundamentals/code/01_zero_shot.py")
+        print(
+            "  uv run python 05_prompt_engineering_fundamentals/code/01_zero_shot.py (Updated needed there too)"
+        )
         return 0
     else:
         print("\n⚠️  Some checks failed. Please fix the issues above.")
-        print("\nNote: You need at least one LLM provider configured:")
-        print("  - LM Studio: https://lmstudio.ai/")
-        print("  - Ollama: https://ollama.com/")
         return 1
 
 

@@ -1,18 +1,4 @@
-"""Shared utilities for GenAI Systems Playground."""
+from .config import get_settings, get_data_path
+from .llm_providers import get_nvidia_client, get_client
 
-from shared.llm_providers import (
-    get_lmstudio_llm,
-    get_ollama_llm,
-    get_openai_llm,
-    get_llm,
-)
-from shared.config import Settings, get_settings
-
-__all__ = [
-    "get_lmstudio_llm",
-    "get_ollama_llm",
-    "get_openai_llm",
-    "get_llm",
-    "Settings",
-    "get_settings",
-]
+__all__ = ["get_settings", "get_data_path", "get_nvidia_client", "get_client"]

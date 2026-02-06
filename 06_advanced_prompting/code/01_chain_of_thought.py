@@ -3,20 +3,6 @@ Chain-of-Thought (CoT) Prompting
 =================================
 Prompting the model to show its reasoning step-by-step before giving
 the final answer. This improves performance on complex reasoning tasks.
-
-When to use:
-- Math word problems
-- Multi-step logic puzzles
-- Complex reasoning tasks
-- When you need to verify the model's reasoning
-
-Tips:
-- Add "Let's think step by step" to trigger CoT
-- For few-shot CoT, include reasoning in examples
-- Can combine with few-shot for better results
-
-Topic: 06_advanced_prompting
-Refer to: ../README.md for more information
 """
 
 import sys
@@ -25,15 +11,25 @@ from pathlib import Path
 # Add project root to path for shared imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-import os
-from shared import get_llm
+from shared import get_nvidia_client, get_settings
 
-# Initialize LLM (provider configurable via LLM_PROVIDER env var)
-# Options: "lmstudio", "ollama", "openai", or "auto"
-llm = get_llm(provider=os.getenv("LLM_PROVIDER", "lmstudio"), temperature=0.1)
+# Initialize client
+client = get_nvidia_client()
+settings = get_settings()
+
+
+def get_completion(prompt, temperature=0.1):
+    """Helper to get completion from NVIDIA API"""
+    response = client.chat.completions.create(
+        model=settings.default_model,
+        messages=[{"role": "user", "content": prompt}],
+        temperature=temperature,
+    )
+    return response.choices[0].message.content
+
 
 print("=" * 80)
-print("CHAIN-OF-THOUGHT PROMPTING EXAMPLES")
+print("CHAIN-OF-THOUGHT PROMPTING EXAMPLES (NVIDIA API)")
 print("=" * 80)
 
 # Example 1: Math problem with zero-shot CoT
@@ -44,9 +40,9 @@ Problem: A baker made 48 cookies. She sold 1/3 of them in the morning
 and 1/4 of the remaining in the afternoon. How many cookies does she have left?
 
 Let's think step by step."""
-response1 = llm.invoke(prompt1)
+response1 = get_completion(prompt1)
 print(f"Prompt:\n{prompt1}")
-print(f"\nResponse:\n{response1.content}")
+print(f"\nResponse:\n{response1}")
 
 # Example 2: Logic puzzle with CoT
 print("\n--- Example 2: Logic Puzzle ---")
@@ -59,9 +55,9 @@ red, blue, and green. Clues:
 3. The person who likes green is not Alice or Bob
 
 What is each person's favorite color? Think step by step."""
-response2 = llm.invoke(prompt2)
+response2 = get_completion(prompt2)
 print(f"Prompt:\n{prompt2}")
-print(f"\nResponse:\n{response2.content}")
+print(f"\nResponse:\n{response2}")
 
 # Example 3: Few-shot CoT for math
 print("\n--- Example 3: Few-shot CoT (Math Problems) ---")
@@ -79,9 +75,9 @@ Answer: 150
 
 Problem: A rectangle has a length of 8 cm and a width of 5 cm. What is its area?
 Reasoning:"""
-response3 = llm.invoke(prompt3)
+response3 = get_completion(prompt3)
 print(f"Prompt:\n{prompt3}")
-print(f"\nResponse:\n{response3.content}")
+print(f"\nResponse:\n{response3}")
 
 # Example 4: Decision making with CoT
 print("\n--- Example 4: Decision Making ---")
@@ -91,9 +87,9 @@ Scenario: Should I buy a laptop or a desktop for programming work?
 I work from home 3 days a week and travel 2 days a week.
 
 Think through the factors step by step and provide a recommendation."""
-response4 = llm.invoke(prompt4)
+response4 = get_completion(prompt4)
 print(f"Prompt:\n{prompt4}")
-print(f"\nResponse:\n{response4.content}")
+print(f"\nResponse:\n{response4}")
 
 # Example 5: Code explanation with CoT
 print("\n--- Example 5: Code Analysis ---")
@@ -107,26 +103,26 @@ def factorial(n):
 ```
 
 Walk through your analysis step by step."""
-response5 = llm.invoke(prompt5)
+response5 = get_completion(prompt5)
 print(f"Prompt:\n{prompt5}")
-print(f"\nResponse:\n{response5.content}")
+print(f"\nResponse:\n{response5}")
 
 # Example 6: Comparison - Without vs With CoT
 print("\n--- Example 6: Comparison (Without vs With CoT) ---")
 
 # Without CoT
 prompt_without = """What is 15% of 80 plus 20% of 50?"""
-response_without = llm.invoke(prompt_without)
+response_without = get_completion(prompt_without)
 print(f"WITHOUT CoT:\nPrompt: {prompt_without}")
-print(f"Response: {response_without.content}")
+print(f"Response: {response_without}")
 
 # With CoT
 prompt_with = """What is 15% of 80 plus 20% of 50?
 
 Think step by step."""
-response_with = llm.invoke(prompt_with)
+response_with = get_completion(prompt_with)
 print(f"\nWITH CoT:\nPrompt: {prompt_with}")
-print(f"Response: {response_with.content}")
+print(f"Response: {response_with}")
 
 print("\n" + "=" * 80)
 print("Key Takeaway: CoT prompting dramatically improves complex reasoning.")

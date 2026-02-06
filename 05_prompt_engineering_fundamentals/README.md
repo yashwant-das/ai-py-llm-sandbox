@@ -5,6 +5,7 @@
 ## Learning Objectives
 
 By the end of this topic, you will:
+
 - Understand the anatomy of an effective prompt
 - Apply zero-shot and few-shot prompting patterns
 - Use role/persona prompting to shape LLM behavior
@@ -12,25 +13,29 @@ By the end of this topic, you will:
 
 ## Files
 
-| File | Technique | Description |
-|------|-----------|-------------|
-| `code/01_zero_shot.py` | **Zero-Shot Prompting** | Direct instructions without examples |
-| `code/02_few_shot.py` | **Few-Shot Prompting** | Learning from examples in the prompt |
-| `code/03_role_prompting.py` | **Role/Persona Prompting** | Assigning specific expertise roles |
+| File                        | Technique                  | Description                          |
+| --------------------------- | -------------------------- | ------------------------------------ |
+| `code/01_zero_shot.py`      | **Zero-Shot Prompting**    | Direct instructions without examples |
+| `code/02_few_shot.py`       | **Few-Shot Prompting**     | Learning from examples in the prompt |
+| `code/03_role_prompting.py` | **Role/Persona Prompting** | Assigning specific expertise roles   |
 
 ## Key Concepts
 
 ### Zero-Shot vs Few-Shot
+
 - **Zero-shot**: Give the model a task directly, relying on pre-trained knowledge
 - **Few-shot**: Provide examples of input/output pairs to guide the pattern
 
 ### Role Prompting
+
 Start prompts with "You are a [role]..." to shape:
+
 - Expertise level
 - Tone and style
 - Perspective and constraints
 
 ### Prompt Structure Template
+
 ```
 [Role/Persona]
 [Context/Background]
@@ -42,12 +47,11 @@ Start prompts with "You are a [role]..." to shape:
 
 ## Running the Examples
 
-All examples support multiple LLM providers via the `LLM_PROVIDER` environment variable.
+All examples use the shared NVIDIA client configuration.
 
-### Quick Start (Default: LM Studio)
+### Quick Start
+
 ```bash
-# Ensure LM Studio is running with server enabled on port 1234
-
 # Zero-shot prompting
 python 05_prompt_engineering_fundamentals/code/01_zero_shot.py
 
@@ -58,25 +62,6 @@ python 05_prompt_engineering_fundamentals/code/02_few_shot.py
 python 05_prompt_engineering_fundamentals/code/03_role_prompting.py
 ```
 
-### Using Ollama Instead
-```bash
-# Ensure Ollama is running and model is pulled
-ollama pull llama3.1
-
-# Run with Ollama
-LLM_PROVIDER=ollama python 05_prompt_engineering_fundamentals/code/01_zero_shot.py
-```
-
-### Provider Options
-| Provider | Command | Requirements |
-|----------|---------|--------------|
-| LM Studio | `LLM_PROVIDER=lmstudio` (default) | LM Studio running on port 1234 |
-| Ollama | `LLM_PROVIDER=ollama` | Ollama running, model pulled |
-| OpenAI | `LLM_PROVIDER=openai` | `OPENAI_API_KEY` set in `.env` |
-| Auto | `LLM_PROVIDER=auto` | Tries all providers |
-
-Set `LLM_PROVIDER` in your `.env` file to make it permanent.
-
 ## Cross-References
 
 - **Next Topic**: [06_advanced_prompting/](../06_advanced_prompting/) - Chain-of-thought, self-consistency, structured outputs
@@ -86,18 +71,3 @@ Set `LLM_PROVIDER` in your `.env` file to make it permanent.
 
 - [Prompt Engineering Guide](https://www.promptingguide.ai/)
 - [OpenAI Prompt Engineering Best Practices](https://platform.openai.com/docs/guides/prompt-engineering)
-
-## Learning Resources
-
-### Raw SDK vs LangChain Comparison
-New to LLM APIs? Start here to understand what's happening under the hood:
-
-```bash
-python 05_prompt_engineering_fundamentals/code/00_raw_sdk_comparison.py
-```
-
-This example shows the **same task** using:
-1. **Raw OpenAI SDK** - Explicit, transparent, great for learning
-2. **LangChain** - Abstracted, convenient, great for productivity
-
-Understanding both helps you debug issues and choose the right tool.

@@ -5,14 +5,6 @@ Explore multiple reasoning paths and evaluate them to find the best solution.
 
 Key Idea: Instead of linear reasoning (CoT), branch out and explore multiple
 solution paths, then evaluate and select the best one.
-
-When to use:
-- Problems with multiple valid approaches
-- Creative tasks requiring exploration
-- Optimization problems
-- When a single reasoning path might get stuck
-
-Reference: Yao et al. "Tree of Thoughts: Deliberate Problem Solving with Large Language Models"
 """
 
 import sys
@@ -21,15 +13,25 @@ from pathlib import Path
 # Add project root to path for shared imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-import os
-from shared import get_llm
+from shared import get_nvidia_client, get_settings
 
-# Initialize LLM (provider configurable via LLM_PROVIDER env var)
-# Options: "lmstudio", "ollama", "openai", or "auto"
-llm = get_llm(provider=os.getenv("LLM_PROVIDER", "lmstudio"), temperature=0.5)
+# Initialize client
+client = get_nvidia_client()
+settings = get_settings()
+
+
+def get_completion(prompt, temperature=0.5):
+    """Helper to get completion from NVIDIA API"""
+    response = client.chat.completions.create(
+        model=settings.default_model,
+        messages=[{"role": "user", "content": prompt}],
+        temperature=temperature,
+    )
+    return response.choices[0].message.content
+
 
 print("=" * 80)
-print("TREE OF THOUGHTS (ToT)")
+print("TREE OF THOUGHTS (ToT) [NVIDIA API]")
 print("=" * 80)
 
 # Example: River Crossing Puzzle (classic planning problem)
@@ -58,12 +60,12 @@ Think carefully about the constraints.
 
 {tot_problem}
 
-Solution {i+1} (provide detailed steps):"""
-    
-    solution = llm.invoke(tot_prompt)
-    solutions.append(solution.content)
-    print(f"\n--- Solution {i+1} ---")
-    print(solution.content[:400] + "..." if len(solution.content) > 400 else solution.content)
+Solution {i + 1} (provide detailed steps):"""
+
+    solution = get_completion(tot_prompt)
+    solutions.append(solution)
+    print(f"\n--- Solution {i + 1} ---")
+    print(solution[:400] + "..." if len(solution) > 400 else solution)
 
 # Step 2: Evaluate solutions (scoring)
 print("\n" + "=" * 60)
@@ -88,30 +90,32 @@ Solution 3:
 Provide scores and identify the best solution. If none are fully correct, 
 describe what the correct solution should be."""
 
-evaluation = llm.invoke(eval_prompt)
-print(f"\n{evaluation.content}")
+evaluation = get_completion(eval_prompt)
+print(f"\n{evaluation}")
 
 # Example 2: Creative Writing with Multiple Paths
 print("\n" + "=" * 80)
 print("--- Example 2: Creative Writing Exploration ---")
 print("=" * 80)
 
-story_prompt = "Write an opening paragraph for a mystery novel about a missing painting."
+story_prompt = (
+    "Write an opening paragraph for a mystery novel about a missing painting."
+)
 
 # Generate diverse approaches
 approaches = [
     "atmospheric and gothic",
-    "fast-paced and action-oriented", 
-    "character-driven and introspective"
+    "fast-paced and action-oriented",
+    "character-driven and introspective",
 ]
 
 stories = []
 for style in approaches:
     prompt = f"{story_prompt}\n\nStyle: {style}\n\nOpening paragraph:"
-    story = llm.invoke(prompt)
-    stories.append((style, story.content))
+    story = get_completion(prompt)
+    stories.append((style, story))
     print(f"\n--- {style.title()} ---")
-    print(story.content[:300] + "...")
+    print(story[:300] + "...")
 
 # Evaluate and select or combine
 print("\n--- Evaluation ---")
@@ -130,8 +134,8 @@ Evaluate each on:
 
 Which approach works best and why?"""
 
-selection = llm.invoke(selection_prompt)
-print(selection.content)
+selection = get_completion(selection_prompt)
+print(selection)
 
 print("\n" + "=" * 80)
 print("Key Takeaway: Tree of Thoughts explores multiple solution paths,")

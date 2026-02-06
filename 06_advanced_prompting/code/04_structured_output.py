@@ -3,21 +3,6 @@ Structured Output / JSON Mode
 =============================
 Guiding the model to produce output in a specific format (JSON, XML, YAML, etc.)
 This is crucial for integrating LLMs with applications and APIs.
-
-When to use:
-- API responses that need parsing
-- Database insertion
-- Structured data extraction
-- Multi-field responses
-
-Techniques:
-1. Explicit formatting instructions
-2. Few-shot with format examples
-3. JSON schema specification
-4. Using LangChain's output parsers
-
-Topic: 06_advanced_prompting
-Refer to: ../README.md for more information
 """
 
 import sys
@@ -27,17 +12,40 @@ import json
 # Add project root to path for shared imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-import os
-from shared import get_llm
-from langchain_core.output_parsers import JsonOutputParser
-from langchain_core.pydantic_v1 import BaseModel, Field
+from shared import get_nvidia_client, get_settings
 
-# Initialize LLM (provider configurable via LLM_PROVIDER env var)
-# Options: "lmstudio", "ollama", "openai", or "auto"
-llm = get_llm(provider=os.getenv("LLM_PROVIDER", "lmstudio"), temperature=0.1)
+# Initialize client
+client = get_nvidia_client()
+settings = get_settings()
+
+
+def get_completion(prompt, temperature=0.1, json_mode=False):
+    """Helper to get completion from NVIDIA API"""
+    messages = [{"role": "user", "content": prompt}]
+
+    # Enable JSON mode if supported/requested
+    # Note: Not all models enforce JSON mode via API parameter,
+    # so we often rely on prompt engineering, but we can try setting response_format if supported.
+    kwargs = {}
+    if json_mode:
+        # Some providers support response_format={"type": "json_object"}
+        # For this generic example we will stick to prompt engineering +
+        # explicit system instruction to be safe across models.
+        if "llama-3" in settings.default_model or "nemotron" in settings.default_model:
+            # Llama 3 often respects explicit JSON prompts well
+            pass
+
+    response = client.chat.completions.create(
+        model=settings.default_model,
+        messages=messages,
+        temperature=temperature,
+        **kwargs,
+    )
+    return response.choices[0].message.content
+
 
 print("=" * 80)
-print("STRUCTURED OUTPUT EXAMPLES")
+print("STRUCTURED OUTPUT EXAMPLES (NVIDIA API)")
 print("=" * 80)
 
 # Example 1: Simple JSON with explicit instructions
@@ -51,16 +59,19 @@ prompt1 = """Extract the following information from the text and output as JSON:
 Text: "Sarah Johnson is 28 years old and lives in Seattle. 
 She enjoys hiking, photography, and playing guitar."
 
-Output ONLY valid JSON with no additional text:
-{"""
-response1 = llm.invoke(prompt1)
+Output ONLY valid JSON with no additional text.
+Example: {"name": "...", ...}"""
+
+response1 = get_completion(prompt1)
 print(f"Prompt:\n{prompt1}")
-print(f"Response:\n{{{response1.content}")
+print(f"Response:\n{response1}")
 try:
-    parsed = json.loads("{" + response1.content)
+    # Clean up markdown code blocks if present
+    content = response1.replace("```json", "").replace("```", "").strip()
+    parsed = json.loads(content)
     print(f"\nParsed JSON: {json.dumps(parsed, indent=2)}")
-except:
-    print("(Note: Parsing may need cleanup)")
+except Exception as e:
+    print(f"(Note: Parsing failed: {e})")
 
 # Example 2: Few-shot JSON examples
 print("\n--- Example 2: Few-shot JSON Examples ---")
@@ -77,23 +88,24 @@ Output: {"product": "Samsung Galaxy S24", "price": 899, "currency": "EUR", "in_s
 Now extract:
 Text: "MacBook Pro M3 starts at $1999 and available now"
 Output:"""
-response2 = llm.invoke(prompt2)
+
+response2 = get_completion(prompt2)
 print(f"Prompt:\n{prompt2}")
-print(f"Response:\n{response2.content}")
+print(f"Response:\n{response2}")
 
-# Example 3: Using Pydantic schema with LangChain
-print("\n--- Example 3: Pydantic Schema with LangChain ---")
+# Example 3: Complex Schema (Replacing Pydantic/LangChain with raw Prompt)
+print("\n--- Example 3: Complex Schema extraction ---")
 
-class MovieReview(BaseModel):
-    movie_title: str = Field(description="The title of the movie")
-    rating: int = Field(description="Rating from 1-10")
-    pros: list = Field(description="List of positive aspects")
-    cons: list = Field(description="List of negative aspects")
-    summary: str = Field(description="Brief summary of the review")
+prompt3 = """Analyze this movie review and extract structured information as JSON.
 
-parser = JsonOutputParser(pydantic_object=MovieReview)
-
-prompt3 = f"""Analyze this movie review and extract structured information.
+Schema:
+{
+  "movie_title": "string",
+  "rating": "integer (1-10)",
+  "pros": ["string", "string", ...],
+  "cons": ["string", "string", ...],
+  "summary": "string"
+}
 
 Review: "Dune: Part Two is an absolute masterpiece. The visuals are stunning,
 the soundtrack by Hans Zimmer is breathtaking, and the performances by 
@@ -101,13 +113,14 @@ Timothee Chalamet and Zendaya are incredible. However, the pacing in the
 middle act feels a bit slow, and some plot points from the book were cut. 
 Overall, this is a must-watch for sci-fi fans. Rating: 9/10"
 
-{parser.get_format_instructions()}"""
+Output ONLY JSON:"""
 
-response3 = llm.invoke(prompt3)
+response3 = get_completion(prompt3)
 print(f"Prompt:\n{prompt3}")
-print(f"\nResponse:\n{response3.content}")
+print(f"\nResponse:\n{response3}")
 try:
-    parsed = parser.parse(response3.content)
+    content = response3.replace("```json", "").replace("```", "").strip()
+    parsed = json.loads(content)
     print(f"\nParsed Output: {json.dumps(parsed, indent=2)}")
 except Exception as e:
     print(f"Parsing note: {e}")
@@ -127,10 +140,11 @@ Output format:
   ...
 ]
 
-Output:"""
-response4 = llm.invoke(prompt4)
+Output ONLY JSON:"""
+
+response4 = get_completion(prompt4)
 print(f"Prompt:\n{prompt4}")
-print(f"Response:\n{response4.content}")
+print(f"Response:\n{response4}")
 
 # Example 5: Classification with confidence scores
 print("\n--- Example 5: Classification with Confidence ---")
@@ -148,10 +162,11 @@ Output format:
   ...
 ]
 
-Output:"""
-response5 = llm.invoke(prompt5)
+Output ONLY JSON:"""
+
+response5 = get_completion(prompt5)
 print(f"Prompt:\n{prompt5}")
-print(f"Response:\n{response5.content}")
+print(f"Response:\n{response5}")
 
 # Example 6: Hierarchical JSON structure
 print("\n--- Example 6: Hierarchical Structure ---")
@@ -172,10 +187,11 @@ Output format:
   "next_meeting": "..."
 }
 
-Output:"""
-response6 = llm.invoke(prompt6)
+Output ONLY JSON:"""
+
+response6 = get_completion(prompt6)
 print(f"Prompt:\n{prompt6}")
-print(f"Response:\n{response6.content}")
+print(f"Response:\n{response6}")
 
 # Example 7: XML format (alternative to JSON)
 print("\n--- Example 7: XML Output Format ---")
@@ -193,12 +209,14 @@ Output format:
   <pages>...</pages>
 </book>
 
-Output:"""
-response7 = llm.invoke(prompt7)
+Output ONLY XML:"""
+
+response7 = get_completion(prompt7)
 print(f"Prompt:\n{prompt7}")
-print(f"Response:\n{response7.content}")
+print(f"Response:\n{response7}")
 
 print("\n" + "=" * 80)
 print("Key Takeaway: Structured output is essential for production systems.")
-print("Use clear examples, schemas, and parsers to ensure reliability.")
+print("Use clear examples and schemas. With raw models, explicit output instructions")
+print("('Output ONLY JSON') are critical.")
 print("=" * 80)

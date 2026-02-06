@@ -8,12 +8,6 @@ Key Idea: Inspired by Kahneman's "Thinking Fast and Slow":
 - System 2: Slow, deliberate, analytical
 
 LLMs often default to System 1. These techniques activate System 2.
-
-When to use:
-- Counter-intuitive problems (bat and ball problem)
-- Problems where first instinct is often wrong
-- Complex reasoning requiring verification
-- Mathematical/logical proofs
 """
 
 import sys
@@ -22,15 +16,25 @@ from pathlib import Path
 # Add project root to path for shared imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-import os
-from shared import get_llm
+from shared import get_nvidia_client, get_settings
 
-# Initialize LLM (provider configurable via LLM_PROVIDER env var)
-# Options: "lmstudio", "ollama", "openai", or "auto"
-llm = get_llm(provider=os.getenv("LLM_PROVIDER", "lmstudio"), temperature=0.1)
+# Initialize client
+client = get_nvidia_client()
+settings = get_settings()
+
+
+def get_completion(prompt, temperature=0.1):
+    """Helper to get completion from NVIDIA API"""
+    response = client.chat.completions.create(
+        model=settings.default_model,
+        messages=[{"role": "user", "content": prompt}],
+        temperature=temperature,
+    )
+    return response.choices[0].message.content
+
 
 print("=" * 80)
-print("SYSTEM 2 THINKING (Deliberate Reasoning)")
+print("SYSTEM 2 THINKING (Deliberate Reasoning) [NVIDIA API]")
 print("=" * 80)
 
 # Example 1: The Classic Bat and Ball Problem
@@ -46,8 +50,8 @@ print("=" * 60)
 print("SYSTEM 1 (Quick Intuition):")
 print("=" * 60)
 system1_prompt = f"{problem}\n\nAnswer immediately:"
-system1_response = llm.invoke(system1_prompt)
-print(f"Response: {system1_response.content}\n")
+system1_response = get_completion(system1_prompt)
+print(f"Response: {system1_response}\n")
 
 # System 2 (deliberate analysis)
 print("=" * 60)
@@ -66,8 +70,8 @@ DO NOT rush. Follow these steps:
 
 Step-by-step solution:"""
 
-system2_response = llm.invoke(system2_prompt)
-print(f"Response:\n{system2_response.content}\n")
+system2_response = get_completion(system2_prompt)
+print(f"Response:\n{system2_response}\n")
 
 # Example 2: Self-Correction / Reflection
 print("=" * 80)
@@ -92,8 +96,8 @@ Initial Answer:
 Self-Critique:
 Final Answer:"""
 
-reflection_response = llm.invoke(reflection_prompt)
-print(f"Response:\n{reflection_response.content}\n")
+reflection_response = get_completion(reflection_prompt)
+print(f"Response:\n{reflection_response}\n")
 
 # Example 3: Step Verification
 print("=" * 80)
@@ -120,15 +124,17 @@ Verification: ...
 Final Answer: ...
 Verification of final answer: ..."""
 
-verification_response = llm.invoke(verification_prompt)
-print(f"Response:\n{verification_response.content}\n")
+verification_response = get_completion(verification_prompt)
+print(f"Response:\n{verification_response}\n")
 
 # Example 4: Devil's Advocate / Red Teaming Own Answer
 print("=" * 80)
 print("--- Example 4: Devil's Advocate (Challenge Own Answer) ---")
 print("=" * 80)
 
-ethical_question = "Should AI systems be allowed to make medical diagnoses without human oversight?"
+ethical_question = (
+    "Should AI systems be allowed to make medical diagnoses without human oversight?"
+)
 print(f"Question: {ethical_question}\n")
 
 devils_advocate_prompt = f"""Analyze this question: {ethical_question}
@@ -146,8 +152,8 @@ Initial Position:
 Devil's Advocate Challenges:
 Balanced Conclusion:"""
 
-da_response = llm.invoke(devils_advocate_prompt)
-print(f"Response:\n{da_response.content}\n")
+da_response = get_completion(devils_advocate_prompt)
+print(f"Response:\n{da_response}\n")
 
 # Example 5: Directional Stimulus (Guide Focus)
 print("=" * 80)
@@ -166,14 +172,14 @@ print("Text to summarize (about AI progress)...\n")
 # Without stimulus
 print("Generic summary:")
 generic_prompt = f"Summarize this text:\n{text_to_summarize}"
-generic = llm.invoke(generic_prompt)
-print(f"{generic.content}\n")
+generic = get_completion(generic_prompt)
+print(f"{generic}\n")
 
 # With directional stimulus
 print("Focused summary (challenges only):")
 stimulus_prompt = f"Summarize this text, focusing SPECIFICALLY on the challenges and problems mentioned:\n{text_to_summarize}"
-stimulus = llm.invoke(stimulus_prompt)
-print(f"{stimulus.content}\n")
+stimulus = get_completion(stimulus_prompt)
+print(f"{stimulus}\n")
 
 print("=" * 80)
 print("Key Takeaway: System 2 techniques slow down reasoning for better accuracy.")

@@ -39,7 +39,7 @@ print("-" * 70)
 for text in texts:
     encoder = encoders["GPT-4 / GPT-3.5"]
     tokens = encoder.encode(text)
-    
+
     print(f"\nText: '{text}'")
     print(f"  Characters: {len(text)}")
     print(f"  Words: {len(text.split())}")
@@ -92,7 +92,10 @@ encoder = encoders["GPT-4 / GPT-3.5"]
 conversation = [
     {"role": "system", "content": "You are a helpful assistant."},
     {"role": "user", "content": "Explain quantum computing in simple terms."},
-    {"role": "assistant", "content": "Quantum computing uses quantum mechanics principles..."},
+    {
+        "role": "assistant",
+        "content": "Quantum computing uses quantum mechanics principles...",
+    },
 ]
 
 # Count tokens in conversation
@@ -103,11 +106,11 @@ assistant_tokens = encoder.encode(conversation[2]["content"])
 # Rough estimate (actual API includes role tokens, format tokens)
 estimated_total = len(system_tokens) + len(user_tokens) + len(assistant_tokens) + 10
 
-print(f"\nConversation token estimate:")
+print("\nConversation token estimate:")
 print(f"  System message: {len(system_tokens)} tokens")
 print(f"  User message: {len(user_tokens)} tokens")
 print(f"  Assistant message: {len(assistant_tokens)} tokens")
-print(f"  Format overhead: ~10 tokens")
+print("  Format overhead: ~10 tokens")
 print(f"  TOTAL: ~{estimated_total} tokens")
 print(f"  Remaining in 4K context: ~{4096 - estimated_total} tokens")
 

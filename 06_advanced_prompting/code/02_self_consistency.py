@@ -3,21 +3,6 @@ Self-Consistency / Ensemble Methods
 ====================================
 Generating multiple responses and selecting the best answer through
 voting, averaging, or consistency checks. Reduces random errors.
-
-When to use:
-- High-stakes decisions
-- Math/reasoning problems where accuracy matters
-- When you can afford multiple API calls
-- Reducing impact of unlucky sampling
-
-Techniques:
-1. Majority voting (for discrete answers)
-2. Answer averaging (for numerical answers)
-3. Consistency checking (verify reasoning)
-4. Confidence-based selection
-
-Topic: 06_advanced_prompting
-Refer to: ../README.md for more information
 """
 
 import sys
@@ -28,26 +13,36 @@ import re
 # Add project root to path for shared imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-import os
-from shared import get_llm
+from shared import get_nvidia_client, get_settings
 
-# Initialize LLM (provider configurable via LLM_PROVIDER env var)
-# Options: "lmstudio", "ollama", "openai", or "auto"
-llm = get_llm(provider=os.getenv("LLM_PROVIDER", "lmstudio"), temperature=0.7)
+# Initialize client
+client = get_nvidia_client()
+settings = get_settings()
+
+
+def get_completion(prompt, temperature=0.7):
+    """Helper to get completion from NVIDIA API"""
+    response = client.chat.completions.create(
+        model=settings.default_model,
+        messages=[{"role": "user", "content": prompt}],
+        temperature=temperature,
+    )
+    return response.choices[0].message.content
+
 
 print("=" * 80)
-print("SELF-CONSISTENCY / ENSEMBLE METHODS")
+print("SELF-CONSISTENCY / ENSEMBLE METHODS (NVIDIA API)")
 print("=" * 80)
 
 
 def extract_final_answer(text):
     """Simple extraction of numeric or short answers."""
     # Try to find "Answer: X" pattern
-    match = re.search(r'[Aa]nswer[:\s]+([\d.]+|[^\n]+)', text)
+    match = re.search(r"[Aa]nswer[:\s]+([\d.]+|[^\n]+)", text)
     if match:
         return match.group(1).strip()
     # Return last number found
-    numbers = re.findall(r'\d+', text)
+    numbers = re.findall(r"\d+", text)
     if numbers:
         return numbers[-1]
     return text.strip()[-50:]  # Last 50 chars
@@ -68,12 +63,12 @@ responses = []
 print(f"Generating {num_samples} solutions...\n")
 
 for i in range(num_samples):
-    response = llm.invoke(math_problem)
-    answer = extract_final_answer(response.content)
-    responses.append((answer, response.content))
-    print(f"Attempt {i+1}:")
+    content = get_completion(math_problem)
+    answer = extract_final_answer(content)
+    responses.append((answer, content))
+    print(f"Attempt {i + 1}:")
     print(f"  Raw answer: {answer}")
-    print(f"  Response preview: {response.content[:100]}...\n")
+    print(f"  Response preview: {content[:100]}...\n")
 
 # Extract just the numeric parts for voting
 answers = [r[0] for r in responses]
@@ -102,17 +97,17 @@ Answer:"""
 print("Generating multiple reasoning paths...\n")
 reasonings = []
 for i in range(3):
-    response = llm.invoke(verification_prompt)
+    content = get_completion(verification_prompt)
     # Extract just Yes/No/Cannot
     answer = "Unknown"
-    if "yes" in response.content.lower():
+    if "yes" in content.lower():
         answer = "Yes"
-    elif "no" in response.content.lower() and "cannot" not in response.content.lower():
+    elif "no" in content.lower() and "cannot" not in content.lower():
         answer = "No"
-    elif "cannot" in response.content.lower():
+    elif "cannot" in content.lower():
         answer = "Cannot be determined"
     reasonings.append(answer)
-    print(f"Attempt {i+1}: {answer}")
+    print(f"Attempt {i + 1}: {answer}")
 
 # Vote on reasonings
 reasoning_votes = Counter(reasonings)
@@ -134,19 +129,18 @@ Reasoning: [brief explanation]"""
 print("Generating responses with confidence scores...\n")
 confident_answers = []
 for i in range(3):
-    response = llm.invoke(confidence_prompt)
-    content = response.content
-    print(f"Attempt {i+1}:")
+    content = get_completion(confidence_prompt)
+    print(f"Attempt {i + 1}:")
     print(f"  {content}\n")
-    
+
     # Parse confidence
-    conf_match = re.search(r'[Cc]onfidence[:\s]+(\d+)', content)
+    conf_match = re.search(r"[Cc]onfidence[:\s]+(\d+)", content)
     confidence = int(conf_match.group(1)) if conf_match else 50
-    
+
     # Parse answer
-    ans_match = re.search(r'[Aa]nswer[:\s]+([^\n]+)', content)
+    ans_match = re.search(r"[Aa]nswer[:\s]+([^\n]+)", content)
     answer = ans_match.group(1).strip() if ans_match else "Unknown"
-    
+
     confident_answers.append((answer, confidence, content))
 
 # Select highest confidence answer
@@ -160,11 +154,11 @@ initial_problem = """Calculate: 15 * 8 + 25 * 4"""
 
 # First attempt
 print("Initial attempt:")
-initial_response = llm.invoke(initial_problem)
-print(f"  Response: {initial_response.content}")
+initial_response = get_completion(initial_problem)
+print(f"  Response: {initial_response}")
 
 # Self-correction prompt
-reflection_prompt = f"""You previously answered: "{initial_response.content}"
+reflection_prompt = f"""You previously answered: "{initial_response}"
 
 For the problem: {initial_problem}
 
@@ -175,8 +169,8 @@ If your answer was correct, confirm it.
 Review:"""
 
 print("\nReflection/Correction:")
-reflection_response = llm.invoke(reflection_prompt)
-print(f"  Response: {reflection_response.content}")
+reflection_response = get_completion(reflection_prompt)
+print(f"  Response: {reflection_response}")
 
 # Example 5: Debate/Simulation Method
 print("\n--- Example 5: Simulated Debate for Complex Questions ---")
@@ -190,26 +184,26 @@ Topic: {debate_topic}
 
 Provide your strongest arguments:"""
 
-# Con side  
+# Con side
 con_prompt = f"""You are arguing FOR prioritizing data collection to improve AI products.
 Topic: {debate_topic}
 
 Provide your strongest arguments:"""
 
 print("Generating pro arguments...")
-pro_response = llm.invoke(pro_prompt)
-print(f"Pro: {pro_response.content[:200]}...")
+pro_response = get_completion(pro_prompt)
+print(f"Pro: {pro_response[:200]}...")
 
 print("\nGenerating con arguments...")
-con_response = llm.invoke(con_prompt)
-print(f"Con: {con_response.content[:200]}...")
+con_response = get_completion(con_prompt)
+print(f"Con: {con_response[:200]}...")
 
 # Synthesis
 synthesis_prompt = f"""Based on these two perspectives:
 
-PRO (Privacy): {pro_response.content[:300]}
+PRO (Privacy): {pro_response[:300]}
 
-CON (Data Collection): {con_response.content[:300]}
+CON (Data Collection): {con_response[:300]}
 
 Provide a balanced synthesis that acknowledges both viewpoints and 
 proposes a middle-ground approach.
@@ -217,8 +211,8 @@ proposes a middle-ground approach.
 Synthesis:"""
 
 print("\nSynthesizing balanced view...")
-synthesis_response = llm.invoke(synthesis_prompt)
-print(f"Synthesis: {synthesis_response.content}")
+synthesis_response = get_completion(synthesis_prompt)
+print(f"Synthesis: {synthesis_response}")
 
 print("\n" + "=" * 80)
 print("Key Takeaway: Self-consistency reduces errors by sampling multiple")

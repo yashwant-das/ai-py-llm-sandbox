@@ -7,13 +7,6 @@ Key Idea: Instead of manually crafting prompts, use an LLM to:
 1. Generate candidate prompts for a task
 2. Score/evaluate each candidate
 3. Select or refine the best one
-
-When to use:
-- Finding optimal prompts through search
-- Scaling prompt engineering across many tasks
-- Meta-learning: prompts that write prompts
-
-Reference: Zhou et al. "Large Language Models Are Human-Level Prompt Engineers"
 """
 
 import sys
@@ -22,15 +15,25 @@ from pathlib import Path
 # Add project root to path for shared imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-import os
-from shared import get_llm
+from shared import get_nvidia_client, get_settings
 
-# Initialize LLM (provider configurable via LLM_PROVIDER env var)
-# Options: "lmstudio", "ollama", "openai", or "auto"
-llm = get_llm(provider=os.getenv("LLM_PROVIDER", "lmstudio"), temperature=0.7)
+# Initialize client
+client = get_nvidia_client()
+settings = get_settings()
+
+
+def get_completion(prompt, temperature=0.7):
+    """Helper to get completion from NVIDIA API"""
+    response = client.chat.completions.create(
+        model=settings.default_model,
+        messages=[{"role": "user", "content": prompt}],
+        temperature=temperature,
+    )
+    return response.choices[0].message.content
+
 
 print("=" * 80)
-print("AUTOMATIC PROMPT ENGINEERING (APE)")
+print("AUTOMATIC PROMPT ENGINEERING (APE) [NVIDIA API]")
 print("=" * 80)
 
 # Example 1: Generating and Selecting Prompts
@@ -55,9 +58,7 @@ Make them:
 
 Candidate 1:"""
 
-candidates_response = llm.invoke(ape_prompt)
-candidates_text = candidates_response.content
-
+candidates_text = get_completion(ape_prompt)
 print(f"Candidate Prompts:\n{candidates_text}\n")
 
 # Step 2: Score each candidate
@@ -77,8 +78,8 @@ Score each prompt 1-10 on:
 
 Provide numerical scores and brief justification for each."""
 
-scoring = llm.invoke(score_prompt)
-print(f"Scoring:\n{scoring.content}\n")
+scoring = get_completion(score_prompt)
+print(f"Scoring:\n{scoring}\n")
 
 # Step 3: Select and refine the best
 print("=" * 60)
@@ -93,8 +94,8 @@ Original candidates:
 
 Optimized prompt (single best version):"""
 
-optimized = llm.invoke(refine_prompt)
-print(f"Optimized Prompt:\n{optimized.content}\n")
+optimized = get_completion(refine_prompt)
+print(f"Optimized Prompt:\n{optimized}\n")
 
 # Example 2: APE for Few-Shot Example Generation
 print("=" * 80)
@@ -114,14 +115,14 @@ Generate 3 diverse examples showing:
 
 Make examples cover different product types and price formats."""
 
-examples = llm.invoke(example_gen_prompt)
-print(f"Generated Examples:\n{examples.content}\n")
+examples = get_completion(example_gen_prompt)
+print(f"Generated Examples:\n{examples}\n")
 
 # Use the generated examples to create a complete few-shot prompt
 complete_prompt = f"""{few_shot_task}
 
 Examples:
-{examples.content}
+{examples}
 
 Now extract from this description:
 {{input}}
@@ -145,15 +146,15 @@ iterations = 3
 for i in range(iterations):
     improve_prompt = f"""Improve this prompt for text summarization:
     
-Current prompt: "{initial_prompt}"
+    Current prompt: "{initial_prompt}"
 
-Critique its weaknesses and provide an improved version.
+    Critique its weaknesses and provide an improved version.
 
-Improved version:"""
-    
-    improved = llm.invoke(improve_prompt)
-    initial_prompt = improved.content.strip()
-    print(f"\nIteration {i+1}: {initial_prompt[:100]}...")
+    Improved version:"""
+
+    improved = get_completion(improve_prompt)
+    initial_prompt = improved.strip()
+    print(f"\nIteration {i + 1}: {initial_prompt[:100]}...")
 
 print("\n" + "=" * 80)
 print("Key Takeaway: APE automates the search for effective prompts.")

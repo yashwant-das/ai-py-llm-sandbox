@@ -3,21 +3,6 @@ Prompt Chaining
 ===============
 Breaking complex tasks into a sequence of simpler prompts where
 the output of one becomes the input of the next.
-
-When to use:
-- Complex multi-step tasks
-- When intermediate outputs are useful
-- Error handling at each step
-- Building reusable prompt components
-
-Benefits:
-- Easier to debug (see intermediate results)
-- Can validate/modify at each step
-- Reusable sub-prompts
-- Better error isolation
-
-Topic: 06_advanced_prompting
-Refer to: ../README.md for more information
 """
 
 import sys
@@ -26,15 +11,25 @@ from pathlib import Path
 # Add project root to path for shared imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-import os
-from shared import get_llm
+from shared import get_nvidia_client, get_settings
 
-# Initialize LLM (provider configurable via LLM_PROVIDER env var)
-# Options: "lmstudio", "ollama", "openai", or "auto"
-llm = get_llm(provider=os.getenv("LLM_PROVIDER", "lmstudio"), temperature=0.3)
+# Initialize client
+client = get_nvidia_client()
+settings = get_settings()
+
+
+def get_completion(prompt, temperature=0.3):
+    """Helper to get completion from NVIDIA API"""
+    response = client.chat.completions.create(
+        model=settings.default_model,
+        messages=[{"role": "user", "content": prompt}],
+        temperature=temperature,
+    )
+    return response.choices[0].message.content
+
 
 print("=" * 80)
-print("PROMPT CHAINING EXAMPLES")
+print("PROMPT CHAINING EXAMPLES (NVIDIA API)")
 print("=" * 80)
 
 # Example 1: Document Processing Pipeline
@@ -59,19 +54,19 @@ Report:
 
 Key Facts:"""
 
-facts = llm.invoke(extraction_prompt)
-print(f"Extracted facts:\n{facts.content}\n")
+facts = get_completion(extraction_prompt)
+print(f"Extracted facts:\n{facts}\n")
 
 # Step 2: Analyze sentiment and tone
 print("Step 2: Analyzing sentiment...")
 sentiment_prompt = f"""Analyze the sentiment and overall tone of these facts:
 
-{facts.content}
+{facts}
 
 Provide sentiment (Positive/Negative/Neutral) and brief reasoning."""
 
-sentiment = llm.invoke(sentiment_prompt)
-print(f"Sentiment analysis:\n{sentiment.content}\n")
+sentiment = get_completion(sentiment_prompt)
+print(f"Sentiment analysis:\n{sentiment}\n")
 
 # Step 3: Generate executive summary
 print("Step 3: Generating executive summary...")
@@ -79,14 +74,14 @@ summary_prompt = f"""Based on these facts and sentiment, write a 2-sentence
 executive summary for stakeholders.
 
 Facts:
-{facts.content}
+{facts}
 
-Sentiment: {sentiment.content}
+Sentiment: {sentiment}
 
 Executive Summary:"""
 
-summary = llm.invoke(summary_prompt)
-print(f"Executive Summary:\n{summary.content}")
+summary = get_completion(summary_prompt)
+print(f"Executive Summary:\n{summary}")
 
 # Example 2: Code Generation Pipeline
 print("\n--- Example 2: Code Generation Pipeline ---")
@@ -100,8 +95,8 @@ requirements_prompt = f"""Given this request, list the key requirements:
 
 Requirements:"""
 
-requirements = llm.invoke(requirements_prompt)
-print(f"Requirements:\n{requirements.content}\n")
+requirements = get_completion(requirements_prompt)
+print(f"Requirements:\n{requirements}\n")
 
 # Step 2: Design the function signature
 print("Step 2: Designing function signature...")
@@ -109,12 +104,12 @@ signature_prompt = f"""Based on these requirements, design the function signatur
 and parameters in Python.
 
 Requirements:
-{requirements.content}
+{requirements}
 
 Function Signature:"""
 
-signature = llm.invoke(signature_prompt)
-print(f"Function Signature:\n{signature.content}\n")
+signature = get_completion(signature_prompt)
+print(f"Function Signature:\n{signature}\n")
 
 # Step 3: Generate implementation
 print("Step 3: Generating implementation...")
@@ -122,16 +117,16 @@ implementation_prompt = f"""Implement this function according to the requirement
 Include docstring and error handling.
 
 Requirements:
-{requirements.content}
+{requirements}
 
 Signature:
-{signature.content}
+{signature}
 
 Implementation:
 ```python"""
 
-implementation = llm.invoke(implementation_prompt)
-print(f"Implementation:\n```python\n{implementation.content}")
+implementation = get_completion(implementation_prompt)
+print(f"Implementation:\n```python\n{implementation}")
 
 # Example 3: Question Answering with Verification
 print("\n--- Example 3: Question Answering with Verification ---")
@@ -145,34 +140,34 @@ draft_prompt = f"""Answer this question concisely:
 
 Draft Answer:"""
 
-draft = llm.invoke(draft_prompt)
-print(f"Draft Answer:\n{draft.content}\n")
+draft = get_completion(draft_prompt)
+print(f"Draft Answer:\n{draft}\n")
 
 # Step 2: Fact-check the answer
 print("Step 2: Fact-checking...")
 factcheck_prompt = f"""Review this answer for accuracy and completeness:
 
 Question: {question}
-Draft Answer: {draft.content}
+Draft Answer: {draft}
 
 Identify any missing points or inaccuracies:
 """
 
-factcheck = llm.invoke(factcheck_prompt)
-print(f"Fact Check:\n{factcheck.content}\n")
+factcheck = get_completion(factcheck_prompt)
+print(f"Fact Check:\n{factcheck}\n")
 
 # Step 3: Refine based on feedback
 print("Step 3: Refining answer...")
 refine_prompt = f"""Improve this answer based on the feedback:
 
-Draft: {draft.content}
+Draft: {draft}
 
-Feedback: {factcheck.content}
+Feedback: {factcheck}
 
 Refined Answer:"""
 
-refined = llm.invoke(refine_prompt)
-print(f"Refined Answer:\n{refined.content}")
+refined = get_completion(refine_prompt)
+print(f"Refined Answer:\n{refined}")
 
 # Example 4: Multi-step Content Creation
 print("\n--- Example 4: Multi-step Content Creation ---")
@@ -186,47 +181,49 @@ outline_prompt = f"""Create a 3-point outline for an article about:
 
 Outline:"""
 
-outline = llm.invoke(outline_prompt)
-print(f"Outline:\n{outline.content}\n")
+outline = get_completion(outline_prompt)
+print(f"Outline:\n{outline}\n")
 
 # Step 2: Write introduction based on outline
 print("Step 2: Writing introduction...")
 intro_prompt = f"""Write an engaging introduction (2-3 sentences) for an article 
 with this outline:
 
-{outline.content}
+{outline}
 
 Introduction:"""
 
-introduction = llm.invoke(intro_prompt)
-print(f"Introduction:\n{introduction.content}\n")
+introduction = get_completion(intro_prompt)
+print(f"Introduction:\n{introduction}\n")
 
 # Step 3: Write body content
 print("Step 3: Writing body content...")
 body_prompt = f"""Expand each point in this outline into 1-2 sentences:
 
-{outline.content}
+{outline}
 
 Body Content:"""
 
-body = llm.invoke(body_prompt)
-print(f"Body Content:\n{body.content}\n")
+body = get_completion(body_prompt)
+print(f"Body Content:\n{body}\n")
 
 # Step 4: Write conclusion
 print("Step 4: Writing conclusion...")
 conclusion_prompt = f"""Write a conclusion that summarizes these key points:
 
-{body.content}
+{body}
 
 Conclusion:"""
 
-conclusion = llm.invoke(conclusion_prompt)
-print(f"Conclusion:\n{conclusion.content}")
+conclusion = get_completion(conclusion_prompt)
+print(f"Conclusion:\n{conclusion}")
 
 # Example 5: Conditional Branching Chain
 print("\n--- Example 5: Conditional Classification Chain ---")
 
-customer_feedback = "The app crashes every time I try to upload a photo. Very frustrating!"
+customer_feedback = (
+    "The app crashes every time I try to upload a photo. Very frustrating!"
+)
 
 # Step 1: Classify the feedback
 print("Step 1: Classifying feedback...")
@@ -237,47 +234,47 @@ Feedback: "{customer_feedback}"
 
 Category:"""
 
-category = llm.invoke(classify_prompt)
-print(f"Category: {category.content.strip()}\n")
+category = get_completion(classify_prompt)
+print(f"Category: {category.strip()}\n")
 
 # Step 2: Route to appropriate handler based on classification
-category_clean = category.content.strip().upper()
+category_clean = category.strip().upper()
 
 if "BUG" in category_clean:
     print("Step 2: Bug Report - Generating technical ticket...")
     handler_prompt = f"""Create a bug report ticket from this feedback:
     
-Feedback: {customer_feedback}
+    Feedback: {customer_feedback}
 
-Format:
-- Priority: (High/Medium/Low)
-- Component: 
-- Steps to reproduce:
-- Expected behavior:
-- Actual behavior:"""
+    Format:
+    - Priority: (High/Medium/Low)
+    - Component: 
+    - Steps to reproduce:
+    - Expected behavior:
+    - Actual behavior:"""
 
 elif "FEATURE" in category_clean:
     print("Step 2: Feature Request - Analyzing feasibility...")
     handler_prompt = f"""Analyze this feature request:
     
-Feedback: {customer_feedback}
+    Feedback: {customer_feedback}
 
-Provide:
-- Feasibility assessment
-- Implementation complexity
-- User impact
-- Recommendation:"""
+    Provide:
+    - Feasibility assessment
+    - Implementation complexity
+    - User impact
+    - Recommendation:"""
 
 else:
     print("Step 2: General Feedback - Generating response...")
     handler_prompt = f"""Draft a thank-you response to this feedback:
     
-Feedback: {customer_feedback}
+    Feedback: {customer_feedback}
 
-Response:"""
+    Response:"""
 
-handler_result = llm.invoke(handler_prompt)
-print(f"Handler Output:\n{handler_result.content}")
+handler_result = get_completion(handler_prompt)
+print(f"Handler Output:\n{handler_result}")
 
 print("\n" + "=" * 80)
 print("Key Takeaway: Prompt chaining breaks complexity into manageable steps,")

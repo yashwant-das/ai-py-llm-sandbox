@@ -3,7 +3,7 @@ Context Window and Token Limits Experiment
 ==========================================
 Demonstrate how context windows work and what happens when you exceed them.
 
-Uses raw OpenAI SDK. Configure endpoint below.
+Uses raw OpenAI SDK via NVIDIA API.
 
 Concepts:
 - Context window size
@@ -11,27 +11,25 @@ Concepts:
 - Input vs output tokens
 """
 
-from openai import OpenAI
+import sys
+from pathlib import Path
 import time
 
-# Configure your endpoint here
-BASE_URL = "http://127.0.0.1:1234/v1"
-API_KEY = "lm-studio"
-MODEL = "openai/gpt-oss-20b"
+# Add project root to path for shared imports
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-# Option 2: Ollama
-# BASE_URL = "http://localhost:11434/v1"
-# API_KEY = "ollama"
-# MODEL = "llama3.1"
+from shared import get_nvidia_client, get_settings
 
 print("=" * 70)
-print("CONTEXT WINDOW AND TOKEN LIMITS")
+print("CONTEXT WINDOW AND TOKEN LIMITS (NVIDIA API)")
 print("=" * 70)
-print(f"Endpoint: {BASE_URL}")
-print(f"Model: {MODEL}")
+
+# Initialize client
+client = get_nvidia_client()
+settings = get_settings()
+
+print(f"Model: {settings.default_model}")
 print()
-
-client = OpenAI(base_url=BASE_URL, api_key=API_KEY)
 
 
 def count_tokens_approx(text):
@@ -43,7 +41,7 @@ def make_request(messages, max_tokens=100):
     """Make a chat completion request."""
     start = time.time()
     response = client.chat.completions.create(
-        model=MODEL,
+        model=settings.default_model,
         messages=messages,
         max_tokens=max_tokens,
     )
@@ -54,9 +52,7 @@ def make_request(messages, max_tokens=100):
 print("1. SHORT CONVERSATION")
 print("-" * 70)
 
-short_messages = [
-    {"role": "user", "content": "What is 2+2?"}
-]
+short_messages = [{"role": "user", "content": "What is 2+2?"}]
 
 response, elapsed = make_request(short_messages)
 approx_input = count_tokens_approx(short_messages[0]["content"])
@@ -82,7 +78,7 @@ texts = [
 for text in texts:
     messages = [{"role": "user", "content": f"{base_question}\n\n{text}"}]
     approx_tokens = count_tokens_approx(messages[0]["content"])
-    
+
     try:
         response, elapsed = make_request(messages)
         print(f"\nApprox {approx_tokens} tokens:")
@@ -101,13 +97,14 @@ prompt = "List the first 20 prime numbers:"
 
 for max_tok in [20, 50, 100]:
     response, _ = make_request(
-        [{"role": "user", "content": prompt}],
-        max_tokens=max_tok
+        [{"role": "user", "content": prompt}], max_tokens=max_tok
     )
     content = response.choices[0].message.content
     print(f"max_tokens={max_tok}:")
     print(f"  Output: {content[:60]}...")
-    print(f"  Length: {len(content)} chars (approx {count_tokens_approx(content)} tokens)")
+    print(
+        f"  Length: {len(content)} chars (approx {count_tokens_approx(content)} tokens)"
+    )
     print()
 
 
@@ -127,17 +124,17 @@ total_approx_tokens = 0
 
 for i, question in enumerate(questions, 1):
     conversation.append({"role": "user", "content": question})
-    
+
     # Approximate tokens in conversation so far
     convo_text = " ".join([m["content"] for m in conversation])
     approx_tokens = count_tokens_approx(convo_text)
     total_approx_tokens += approx_tokens
-    
+
     response, elapsed = make_request(conversation, max_tokens=50)
     answer = response.choices[0].message.content
-    
+
     conversation.append({"role": "assistant", "content": answer})
-    
+
     print(f"Turn {i}:")
     print(f"  Q: {question}")
     print(f"  A: {answer[:50]}...")
@@ -149,10 +146,9 @@ print("5. CONTEXT WINDOW TRADE-OFFS")
 print("-" * 70)
 print("""
 Model Context Windows:
-- GPT-3.5: 4,096 tokens (~6 pages)
-- GPT-4: 8,192 tokens (~12 pages)
-- GPT-4 Turbo: 128,000 tokens (~200 pages)
-- Claude 3: 200,000 tokens (~300 pages)
+- Llama 3.1 405B: 128k tokens
+- GPT-4o: 128k tokens
+- Claude 3.5: 200k tokens
 
 Trade-offs:
 - Larger window = more context but slower/more expensive

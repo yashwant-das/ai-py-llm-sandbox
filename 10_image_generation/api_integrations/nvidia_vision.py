@@ -2,34 +2,21 @@
 NVIDIA Vision Models - Simple Example
 =====================================
 Using NVIDIA's vision models for image understanding and analysis.
-
-This example uses NVIDIA's vision-language models to:
-- Describe images
-- Analyze image content
-- Answer questions about images
-
-Prerequisites:
-1. Get NVIDIA API key from https://build.nvidia.com/
-2. Add NVIDIA_API_KEY to your .env file
-3. Install dependencies: uv sync --extra image
-
-Usage:
-    uv run python 10_image_generation/api_integrations/nvidia_vision.py
 """
 
 import base64
 import os
+import sys
 from pathlib import Path
 
 import requests
-from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+# Add project root to path for shared imports
+project_root = str(Path(__file__).parent.parent.parent)
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
-# NVIDIA API Configuration
-NVIDIA_API_KEY = os.getenv("NVIDIA_API_KEY")
-NVIDIA_BASE_URL = "https://integrate.api.nvidia.com/v1"
+from shared import get_settings
 
 # Recommended vision models from your available list
 VISION_MODELS = {
@@ -76,7 +63,9 @@ def analyze_image(image_path, question, model="nvidia/neva-22b"):
     Returns:
         Model's response text or None if failed
     """
-    if not NVIDIA_API_KEY:
+    settings = get_settings()
+
+    if not settings.nvidia_api_key:
         print("❌ Error: NVIDIA_API_KEY not found in .env file")
         return None
 
@@ -85,7 +74,8 @@ def analyze_image(image_path, question, model="nvidia/neva-22b"):
         return None
 
     # API endpoint for chat completions
-    url = f"{NVIDIA_BASE_URL}/chat/completions"
+    base_url = "https://integrate.api.nvidia.com/v1"
+    url = f"{base_url}/chat/completions"
 
     # Encode image
     image_base64 = encode_image(image_path)
@@ -94,7 +84,7 @@ def analyze_image(image_path, question, model="nvidia/neva-22b"):
 
     # Request headers
     headers = {
-        "Authorization": f"Bearer {NVIDIA_API_KEY}",
+        "Authorization": f"Bearer {settings.nvidia_api_key}",
         "Content-Type": "application/json",
     }
 
@@ -170,7 +160,6 @@ def main():
     print()
 
     # Check if we have any images to analyze
-    # You can use images generated from nvidia_image_gen.py or your own images
     output_dir = Path("10_image_generation/output")
 
     # Try to find an image from the output directory

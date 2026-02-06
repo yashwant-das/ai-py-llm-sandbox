@@ -104,7 +104,9 @@ def generate_batch(prompts, model="stabilityai/stable-diffusion-xl", delay=1):
     Returns:
         Dictionary with results and statistics
     """
-    if not NVIDIA_API_KEY:
+    import os
+
+    if not os.environ.get("NVIDIA_API_KEY"):
         print("❌ Error: NVIDIA_API_KEY not found in .env file")
         return {"success": False, "error": "No API key"}
 
@@ -152,7 +154,7 @@ def generate_batch(prompts, model="stabilityai/stable-diffusion-xl", delay=1):
                 }
             )
         else:
-            print(f"   ❌ Failed to generate")
+            print("   ❌ Failed to generate")
             results["failed"] += 1
             results["errors"].append(
                 {"index": i, "prompt": prompt, "error": "Generation failed"}

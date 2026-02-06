@@ -2,33 +2,19 @@
 Prompt Enhancer - NVIDIA-Powered Image Prompt Improvement
 =========================================================
 Use NVIDIA's LLMs to enhance simple prompts for better image generation.
-
-This example shows how to:
-- Take a simple, basic prompt
-- Use NVIDIA's LLM to expand and enhance it
-- Generate better images with the enhanced prompt
-
-Prerequisites:
-1. Get NVIDIA API key from https://build.nvidia.com/
-2. Add NVIDIA_API_KEY to your .env file
-3. Install dependencies: uv sync --extra image
-
-Usage:
-    uv run python 10_image_generation/apps/prompt_enhancer.py
 """
 
-import os
+import sys
 from pathlib import Path
 
 import requests
-from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+# Add project root to path for shared imports
+project_root = str(Path(__file__).parent.parent.parent)
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
-# NVIDIA API Configuration
-NVIDIA_API_KEY = os.getenv("NVIDIA_API_KEY")
-NVIDIA_BASE_URL = "https://integrate.api.nvidia.com/v1"
+from shared import get_settings
 
 # Recommended LLMs for prompt enhancement
 PROMPT_MODELS = {
@@ -52,13 +38,15 @@ def enhance_prompt(simple_prompt, model="meta/llama-3.1-8b-instruct", style="det
     Returns:
         Enhanced prompt or None if failed
     """
-    if not NVIDIA_API_KEY:
+    settings = get_settings()
+
+    if not settings.nvidia_api_key:
         print("❌ Error: NVIDIA_API_KEY not found in .env file")
-        print("   Get your API key from: https://build.nvidia.com/")
         return None
 
     # API endpoint for chat completions
-    url = f"{NVIDIA_BASE_URL}/chat/completions"
+    base_url = "https://integrate.api.nvidia.com/v1"
+    url = f"{base_url}/chat/completions"
 
     # Style-specific instructions
     style_instructions = {
@@ -84,7 +72,7 @@ Guidelines:
 
     # Request headers
     headers = {
-        "Authorization": f"Bearer {NVIDIA_API_KEY}",
+        "Authorization": f"Bearer {settings.nvidia_api_key}",
         "Content-Type": "application/json",
     }
 
@@ -145,12 +133,15 @@ def generate_variations(
     Returns:
         List of prompt variations
     """
-    if not NVIDIA_API_KEY:
+    settings = get_settings()
+
+    if not settings.nvidia_api_key:
         print("❌ Error: NVIDIA_API_KEY not found in .env file")
         return []
 
     # API endpoint for chat completions
-    url = f"{NVIDIA_BASE_URL}/chat/completions"
+    base_url = "https://integrate.api.nvidia.com/v1"
+    url = f"{base_url}/chat/completions"
 
     # System prompt
     system_prompt = f"""Generate {num_variations} different creative variations of the given image generation prompt.
@@ -164,7 +155,7 @@ Output each variation on a separate line, numbered 1-{num_variations}."""
 
     # Request headers
     headers = {
-        "Authorization": f"Bearer {NVIDIA_API_KEY}",
+        "Authorization": f"Bearer {settings.nvidia_api_key}",
         "Content-Type": "application/json",
     }
 

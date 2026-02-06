@@ -1,53 +1,39 @@
 """
 ReAct (Reasoning + Acting) Pattern
 ===================================
-Combines Chain-of-Thought reasoning with actions (like tool usage).
+Combines reasoning with actions (tool usage).
 The model iteratively: THINK -> ACT -> OBSERVE -> REPEAT until solved.
 
-When to use:
-- Tasks requiring external information (search, APIs, databases)
-- Multi-step problems that need verification
-- Interactive tasks requiring tool use
-
-Key Components:
-1. Thought: Reason about what to do next
-2. Action: Execute a tool/action
-3. Observation: Get results from the action
-4. Repeat until done
-
-This is the foundation of many agent frameworks like LangChain agents.
+Refactored to use the raw OpenAI SDK with native Tool Calling (Function Calling).
 
 Topic: 18_ai_agents
-Refer to: ../README.md for more information
 """
 
 import sys
 from pathlib import Path
-import os
+import json
 
 # Add project root to path for shared imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from ddgs import DDGS
-from dotenv import load_dotenv
-from langchain.agents import create_react_agent, AgentExecutor
-from langchain_core.tools import tool
-from langchain import hub
+from shared import get_nvidia_client, get_settings
 
-from shared import get_llm, get_settings
+# Initialize client
+client = get_nvidia_client()
+settings = get_settings()
 
-# Load environment variables
-load_dotenv()
+print("=" * 80)
+print("ReAct AGENT (Raw SDK + Tool Calling)")
+print("=" * 80)
+print(f"Model: {settings.default_model}")
 
-# Initialize LLM (provider configurable via LLM_PROVIDER env var)
-# Options: "lmstudio", "ollama", "openai", or "auto"
-llm = get_llm(provider=os.getenv("LLM_PROVIDER", "lmstudio"), temperature=0.1)
+# --- Tool Definitions ---
 
 
-# Define tools
-@tool
 def search_duckduckgo(query: str) -> str:
     """Search the web via DuckDuckGo and return results."""
+    print(f"\n[Tool: Searching for '{query}']")
     with DDGS() as ddg:
         results = ddg.text(query, max_results=3)
     if results:
@@ -55,9 +41,9 @@ def search_duckduckgo(query: str) -> str:
     return "No results found."
 
 
-@tool
 def calculate(expression: str) -> str:
     """Evaluate a mathematical expression safely."""
+    print(f"\n[Tool: Calculating '{expression}']")
     try:
         # Only allow basic math operations
         allowed_chars = set("0123456789+-*/.() ")
@@ -69,54 +55,129 @@ def calculate(expression: str) -> str:
         return f"Error: {str(e)}"
 
 
-@tool
 def get_current_date() -> str:
     """Get today's date."""
+    print("\n[Tool: Getting Date]")
     from datetime import datetime
+
     return datetime.now().strftime("%Y-%m-%d")
 
 
-# Create tools list
-tools = [search_duckduckgo, calculate, get_current_date]
+# Map function names to functions
+available_tools = {
+    "search_duckduckgo": search_duckduckgo,
+    "calculate": calculate,
+    "get_current_date": get_current_date,
+}
 
-# Get the ReAct prompt template from LangChain hub
-# This includes the standard ReAct instructions
-prompt = hub.pull("hwchase17/react")
+# Define tools schema for the API
+tools_schema = [
+    {
+        "type": "function",
+        "function": {
+            "name": "search_duckduckgo",
+            "description": "Search the web via DuckDuckGo and return results.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string", "description": "The search query"}
+                },
+                "required": ["query"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "calculate",
+            "description": "Evaluate a mathematical expression.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "expression": {
+                        "type": "string",
+                        "description": "The math expression (e.g., '2 + 2')",
+                    }
+                },
+                "required": ["expression"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_current_date",
+            "description": "Get today's date.",
+            "parameters": {
+                "type": "object",
+                "properties": {},
+            },
+        },
+    },
+]
 
-# Create the agent
-agent = create_react_agent(llm, tools, prompt)
-agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
+# --- Agent Loop ---
 
-print("=" * 80)
-print("ReAct AGENT EXAMPLES")
-print("=" * 80)
+
+def run_agent(query):
+    print(f"\n--- Query: {query} ---")
+    messages = [{"role": "user", "content": query}]
+
+    # Loop for multi-step reasoning
+    for _ in range(5):  # Limit turns
+        try:
+            response = client.chat.completions.create(
+                model=settings.default_model,
+                messages=messages,
+                tools=tools_schema,
+                tool_choice="auto",
+                temperature=0.0,
+            )
+
+            message = response.choices[0].message
+
+            # Append assistant message to history
+            messages.append(message)
+
+            # Check if tool calls required
+            if message.tool_calls:
+                for tool_call in message.tool_calls:
+                    function_name = tool_call.function.name
+                    function_args = json.loads(tool_call.function.arguments)
+
+                    if function_name in available_tools:
+                        function_to_call = available_tools[function_name]
+                        tool_output = function_to_call(**function_args)
+
+                        # Add tool execution result to message history
+                        messages.append(
+                            {
+                                "tool_call_id": tool_call.id,
+                                "role": "tool",
+                                "name": function_name,
+                                "content": str(tool_output),
+                            }
+                        )
+            else:
+                # No tool calls, just final response
+                print(f"\nFinal Answer: {message.content}")
+                return message.content
+
+        except Exception as e:
+            print(f"Error: {e}")
+            break
+
 
 # Example 1: Search + Calculation
-print("\n--- Example 1: Multi-step Research Task ---")
-query1 = "What is the current age of the oldest living person? Calculate how many years older they are than a 30-year-old."
-print(f"Query: {query1}")
-print("-" * 80)
-result1 = agent_executor.invoke({"input": query1})
-print(f"\nFinal Answer: {result1['output']}")
+run_agent("Who is the oldest living person and what year were they born?")
 
 # Example 2: Date-dependent query
-print("\n--- Example 2: Date-Aware Query ---")
-query2 = "How many days are left until the end of this year?"
-print(f"Query: {query2}")
-print("-" * 80)
-result2 = agent_executor.invoke({"input": query2})
-print(f"\nFinal Answer: {result2['output']}")
+run_agent("How many days are left until the end of this year?")
 
-# Example 3: Multi-hop question (requires multiple searches)
-print("\n--- Example 3: Multi-hop Question ---")
-query3 = "What is the capital city of the country where the Eiffel Tower is located?"
-print(f"Query: {query3}")
-print("-" * 80)
-result3 = agent_executor.invoke({"input": query3})
-print(f"\nFinal Answer: {result3['output']}")
+# Example 3: Multi-hop
+run_agent("What is the capital city of the country where the Eiffel Tower is located?")
 
 print("\n" + "=" * 80)
-print("Key Takeaway: ReAct agents combine reasoning with actions.")
-print("They can use tools, observe results, and adapt their next steps.")
-print("This is the foundation of autonomous AI agents.")
+print("Key Takeaway: Agents loop through THINK -> ACT -> OBSERVE.")
+print("With raw SDK, we use `tools` and `tool_calls` to handle this loop.")
 print("=" * 80)
