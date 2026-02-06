@@ -1,11 +1,11 @@
 """
-Prompt Enhancer - LLM-Powered Image Prompt Improvement
-=====================================================
+Prompt Enhancer - NVIDIA-Powered Image Prompt Improvement
+=========================================================
 Use NVIDIA's LLMs to enhance simple prompts for better image generation.
 
 This example shows how to:
 - Take a simple, basic prompt
-- Use an LLM to expand and enhance it
+- Use NVIDIA's LLM to expand and enhance it
 - Generate better images with the enhanced prompt
 
 Prerequisites:
@@ -30,7 +30,7 @@ load_dotenv()
 NVIDIA_API_KEY = os.getenv("NVIDIA_API_KEY")
 NVIDIA_BASE_URL = "https://integrate.api.nvidia.com/v1"
 
-# Recommended LLMs for prompt enhancement from your available list
+# Recommended LLMs for prompt enhancement
 PROMPT_MODELS = {
     "llama_8b": "meta/llama-3.1-8b-instruct",  # Fast, good quality
     "llama_70b": "meta/llama-3.1-70b-instruct",  # High quality
@@ -46,7 +46,7 @@ def enhance_prompt(simple_prompt, model="meta/llama-3.1-8b-instruct", style="det
 
     Args:
         simple_prompt: Basic prompt to enhance
-        model: LLM model to use for enhancement
+        model: NVIDIA LLM model to use for enhancement
         style: Enhancement style (detailed, artistic, photorealistic, cinematic)
 
     Returns:
@@ -54,6 +54,7 @@ def enhance_prompt(simple_prompt, model="meta/llama-3.1-8b-instruct", style="det
     """
     if not NVIDIA_API_KEY:
         print("❌ Error: NVIDIA_API_KEY not found in .env file")
+        print("   Get your API key from: https://build.nvidia.com/")
         return None
 
     # API endpoint for chat completions
@@ -70,7 +71,7 @@ def enhance_prompt(simple_prompt, model="meta/llama-3.1-8b-instruct", style="det
     instruction = style_instructions.get(style, style_instructions["detailed"])
 
     # System prompt for the LLM
-    system_prompt = f"""You are an expert at writing prompts for AI image generation. 
+    system_prompt = f"""You are an expert at writing prompts for AI image generation.
 Your task is to enhance simple prompts to create more detailed, vivid, and effective image generation prompts.
 
 Guidelines:
@@ -139,7 +140,7 @@ def generate_variations(
     Args:
         base_prompt: Original prompt to vary
         num_variations: Number of variations to generate
-        model: LLM model to use
+        model: NVIDIA LLM model to use
 
     Returns:
         List of prompt variations
@@ -218,7 +219,7 @@ Output each variation on a separate line, numbered 1-{num_variations}."""
 def main():
     """Run prompt enhancement examples."""
     print("=" * 70)
-    print("PROMPT ENHANCER - LLM-POWERED IMAGE PROMPT IMPROVEMENT")
+    print("PROMPT ENHANCER - NVIDIA-POWERED IMAGE PROMPT IMPROVEMENT")
     print("=" * 70)
     print()
 
@@ -276,7 +277,7 @@ def main():
     print()
 
     # Example 5: Compare different models
-    print("--- Example 5: Compare Different LLMs ---")
+    print("--- Example 5: Compare Different NVIDIA Models ---")
     test_prompt = "A cozy coffee shop interior"
     print(f"📝 Original: {test_prompt}")
     print()

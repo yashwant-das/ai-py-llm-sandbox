@@ -12,8 +12,7 @@
 # Copy example to .env
 cp .env.example .env
 
-# Edit .env and add your key
-# Add this line:
+# Edit .env and add:
 NVIDIA_API_KEY=nvapi-your-actual-key-here
 ```
 
@@ -23,31 +22,37 @@ NVIDIA_API_KEY=nvapi-your-actual-key-here
 uv sync --extra image
 ```
 
+**Note**: All functionality uses NVIDIA's cloud APIs - no local setup required!
+
 ## Run Examples
 
-### Example 1: Generate Images
+### Example 1: Generate Images (NVIDIA API)
 ```bash
-python 10_image_generation/api_integrations/nvidia_image_gen.py
+uv run python 10_image_generation/api_integrations/nvidia_image_gen.py
 ```
 **Output**: 4 images saved to `10_image_generation/output/`
+**Requires**: NVIDIA_API_KEY
 
-### Example 2: Analyze Images
+### Example 2: Analyze Images (NVIDIA API)
 ```bash
-python 10_image_generation/api_integrations/nvidia_vision.py
+uv run python 10_image_generation/api_integrations/nvidia_vision.py
 ```
 **Note**: Run Example 1 first to have images to analyze
+**Requires**: NVIDIA_API_KEY
 
-### Example 3: Enhance Prompts
+### Example 3: Enhance Prompts (NVIDIA LLMs)
 ```bash
-python 10_image_generation/apps/prompt_enhancer.py
+uv run python 10_image_generation/apps/prompt_enhancer.py
 ```
 **Output**: Enhanced prompts for better image generation
+**Requires**: NVIDIA_API_KEY
 
-### Example 4: Batch Generate
+### Example 4: Batch Generate (NVIDIA API)
 ```bash
-python 10_image_generation/apps/batch_generator.py
+uv run python 10_image_generation/apps/batch_generator.py
 ```
 **Output**: Multiple images saved to `10_image_generation/output/batch/`
+**Requires**: NVIDIA_API_KEY
 
 ## File Structure
 
@@ -69,7 +74,7 @@ python 10_image_generation/apps/batch_generator.py
 - Check that the key is in the `.env` file
 - Ensure the `.env` file is in the project root
 
-### "API request failed"
+### "API request failed" (NVIDIA)
 - Check your internet connection
 - Verify your API key is valid
 - Check if you have API credits remaining
@@ -82,9 +87,10 @@ python 10_image_generation/apps/batch_generator.py
 
 1. **Start Simple**: Run `nvidia_image_gen.py` first
 2. **Experiment**: Try different prompts and models
-3. **Enhance**: Use `prompt_enhancer.py` to improve prompts
+3. **Enhance**: Use `prompt_enhancer.py` to improve prompts with NVIDIA LLMs
 4. **Batch**: Use `batch_generator.py` for multiple images
 5. **Analyze**: Use `nvidia_vision.py` to understand generated images
+6. **Compare**: Try different NVIDIA models (Llama, Nemotron, DeepSeek, Gemma)
 
 ## Next Steps
 

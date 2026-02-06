@@ -14,7 +14,7 @@ By the end of this topic, you will:
 ## Prerequisites
 
 1. **Python 3.10+**: This project requires Python 3.10 or higher
-2. **NVIDIA API Key**: Get your free API key from [build.nvidia.com](https://build.nvidia.com/)
+2. **NVIDIA API Key**: Get your free API key from [build.nvidia.com/](https://build.nvidia.com/)
 3. **Python Dependencies**: Install required packages
    ```bash
    uv sync --extra image
@@ -24,6 +24,11 @@ By the end of this topic, you will:
    cp .env.example .env
    # Edit .env and add: NVIDIA_API_KEY=nvapi-your-key-here
    ```
+
+**Note**: This topic uses NVIDIA's cloud APIs for all functionality:
+- Image generation (Stable Diffusion XL)
+- Vision/understanding (Neva, Vila, Llama Vision)
+- Prompt enhancement (Llama, Nemotron, DeepSeek, Gemma)
 
 ## Folder Structure
 
@@ -55,30 +60,33 @@ From your available NVIDIA models:
 - `meta/llama-3.2-90b-vision-instruct` - Large vision model
 
 ### Prompt Enhancement LLMs
-From your available models:
+For prompt enhancement, NVIDIA provides a wide range of LLM models:
 - `meta/llama-3.1-8b-instruct` - Fast, good quality
 - `meta/llama-3.1-70b-instruct` - High quality
 - `nvidia/llama-3.1-nemotron-70b-instruct` - NVIDIA optimized
 - `deepseek-ai/deepseek-v3.2` - Strong reasoning
 - `google/gemma-2-27b-it` - Good balance
 
+All examples use NVIDIA's cloud API - no local setup required!
+
 ## Running Examples
 
-### 1. Image Generation
+### 1. Image Generation (NVIDIA API)
 ```bash
 # Generate single images with NVIDIA API
-python 10_image_generation/api_integrations/nvidia_image_gen.py
+uv run python 10_image_generation/api_integrations/nvidia_image_gen.py
 ```
 
 **What it does:**
 - Generates 4 example images (landscape, cyberpunk, coffee shop, dragon)
 - Saves images to `10_image_generation/output/`
 - Demonstrates basic and negative prompts
+- **Requires**: NVIDIA_API_KEY in `.env`
 
-### 2. Vision/Understanding
+### 2. Vision/Understanding (NVIDIA API)
 ```bash
 # Analyze images with NVIDIA vision models
-python 10_image_generation/api_integrations/nvidia_vision.py
+uv run python 10_image_generation/api_integrations/nvidia_vision.py
 ```
 
 **What it does:**
@@ -86,23 +94,25 @@ python 10_image_generation/api_integrations/nvidia_vision.py
 - Answers questions about image content
 - Compares different vision models
 - Requires images in `10_image_generation/output/` (run image_gen first)
+- **Requires**: NVIDIA_API_KEY in `.env`
 
-### 3. Prompt Enhancement
+### 3. Prompt Enhancement (NVIDIA LLMs)
 ```bash
-# Enhance prompts using LLMs
-python 10_image_generation/apps/prompt_enhancer.py
+# Enhance prompts using NVIDIA's LLMs
+uv run python 10_image_generation/apps/prompt_enhancer.py
 ```
 
 **What it does:**
 - Takes simple prompts and enhances them
 - Supports different styles (detailed, artistic, photorealistic, cinematic)
 - Generates multiple variations of a prompt
-- Compares different LLM models
+- Compares different NVIDIA models (Llama, Nemotron, DeepSeek, Gemma)
+- **Requires**: NVIDIA_API_KEY in `.env`
 
-### 4. Batch Generation
+### 4. Batch Generation (NVIDIA API)
 ```bash
 # Generate multiple images at once
-python 10_image_generation/apps/batch_generator.py
+uv run python 10_image_generation/apps/batch_generator.py
 ```
 
 **What it does:**
@@ -110,6 +120,7 @@ python 10_image_generation/apps/batch_generator.py
 - Organizes output with clear filenames
 - Handles errors gracefully
 - Tracks progress and statistics
+- **Requires**: NVIDIA_API_KEY in `.env`
 
 ## Prompt Engineering for Images
 
