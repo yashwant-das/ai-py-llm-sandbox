@@ -1,7 +1,7 @@
 # GenAI Systems Playground
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![LM Studio](https://img.shields.io/badge/LM%20Studio-Supported-green.svg)](https://lmstudio.ai/)
 [![Ollama](https://img.shields.io/badge/Ollama-Supported-purple.svg)](https://ollama.com/)
 
@@ -10,17 +10,30 @@
 ## Quick Start
 
 ```bash
-# 1. Clone and setup
-pip install -r requirements.txt
+# 1. Clone and setup with UV
+uv sync
 cp .env.example .env
 # Edit .env with your configuration (LM Studio, API keys, etc.)
 
 # 2. Verify setup
-python 01_setup/verify_setup.py
+uv run python 01_setup/verify_setup.py
 
 # 3. Run your first example
-python 05_prompt_engineering_fundamentals/code/01_zero_shot.py
+uv run python 05_prompt_engineering_fundamentals/code/01_zero_shot.py
 ```
+
+**For topic-specific dependencies:**
+```bash
+# Install all optional dependencies
+uv sync --all-extras
+
+# Or install specific topic dependencies
+uv sync --extra vector      # For Topic 3, 9, 16 (Vector Search)
+uv sync --extra image       # For Topic 10 (Image Generation)
+uv sync --extra huggingface # For Topic 17 (Hugging Face)
+```
+
+See [`UV_SETUP.md`](UV_SETUP.md) for detailed UV instructions.
 
 ## Repository Structure
 
@@ -114,34 +127,39 @@ Choose **one** of the following local LLM options:
 - Server runs automatically at port 11434
 
 2. **Python Environment**
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # or venv\Scripts\activate on Windows
-   pip install -r requirements.txt
-   ```
+    ```bash
+    # Install UV (if not already installed)
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+
+    # Install dependencies (requires Python 3.10+)
+    uv sync
+    ```
 
 3. **Environment Variables**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your settings
-   ```
+    ```bash
+    cp .env.example .env
+    # Edit .env with your settings
+    ```
 
 ### Example Commands
 
 ```bash
 # Prompt Engineering
-python 05_prompt_engineering_fundamentals/code/01_zero_shot.py
-python 05_prompt_engineering_fundamentals/code/02_few_shot.py
+uv run python 05_prompt_engineering_fundamentals/code/01_zero_shot.py
+uv run python 05_prompt_engineering_fundamentals/code/02_few_shot.py
 
 # Advanced Techniques
-python 06_advanced_prompting/code/01_chain_of_thought.py
-python 06_advanced_prompting/code/04_structured_output.py
+uv run python 06_advanced_prompting/code/01_chain_of_thought.py
+uv run python 06_advanced_prompting/code/04_structured_output.py
 
 # Agents
-python 18_ai_agents/fundamentals/01_react_pattern.py
+uv run python 18_ai_agents/fundamentals/01_react_pattern.py
 
-# RAG (requires additional setup)
-python 16_rag_systems/fundamentals/01_basic_rag_pipeline.py
+# Image Generation (requires --extra image)
+uv run python 10_image_generation/api_integrations/nvidia_image_gen.py
+
+# RAG (requires --extra vector)
+uv run python 16_rag_systems/fundamentals/01_basic_rag_pipeline.py
 ```
 
 ## Key Dependencies
@@ -154,7 +172,10 @@ chromadb>=0.5.0           # Vector database (Topic 9, 16)
 transformers>=4.40.0      # Hugging Face (Topic 17)
 ```
 
-See [`requirements.txt`](requirements.txt) for complete list.
+See [`pyproject.toml`](pyproject.toml) for complete list with optional dependencies organized by topic.
+
+**Package Management:**
+- **UV**: Fast, modern package management - see [`UV_SETUP.md`](UV_SETUP.md) for details
 
 ## Cross-References
 

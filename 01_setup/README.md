@@ -29,18 +29,14 @@ By the end of this topic, you will:
 ### 1. Python Environment
 
 ```bash
-# Create virtual environment
-python -m venv venv
-
-# Activate (Linux/Mac)
-source venv/bin/activate
-
-# Activate (Windows)
-venv\Scripts\activate
+# Install UV (if not already installed)
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Install dependencies
-pip install -r requirements.txt
+uv sync
 ```
+
+For detailed setup instructions, see [`python_env_setup.md`](python_env_setup.md).
 
 ### 2. Local LLM Setup
 
@@ -102,16 +98,16 @@ OLLAMA_DEFAULT_MODEL=llama3.1
 All examples use the `LLM_PROVIDER` environment variable to select the provider:
 ```bash
 # Use LM Studio (default)
-python 05_prompt_engineering_fundamentals/code/01_zero_shot.py
+uv run python 05_prompt_engineering_fundamentals/code/01_zero_shot.py
 
 # Use Ollama
-LLM_PROVIDER=ollama python 05_prompt_engineering_fundamentals/code/01_zero_shot.py
+LLM_PROVIDER=ollama uv run python 05_prompt_engineering_fundamentals/code/01_zero_shot.py
 
 # Use OpenAI (requires API key)
-LLM_PROVIDER=openai python 05_prompt_engineering_fundamentals/code/01_zero_shot.py
+LLM_PROVIDER=openai uv run python 05_prompt_engineering_fundamentals/code/01_zero_shot.py
 
 # Auto-detect (tries LM Studio → Ollama → OpenAI)
-LLM_PROVIDER=auto python 05_prompt_engineering_fundamentals/code/01_zero_shot.py
+LLM_PROVIDER=auto uv run python 05_prompt_engineering_fundamentals/code/01_zero_shot.py
 ```
 
 Or set it permanently in `.env`:
@@ -122,7 +118,7 @@ LLM_PROVIDER=ollama
 ### 4. Verify Setup
 
 ```bash
-python 01_setup/verify_setup.py
+uv run python 01_setup/verify_setup.py
 ```
 
 Expected output:
@@ -141,7 +137,8 @@ Expected output:
 | `Connection refused` (Ollama) | Run `ollama serve` or check if service is running |
 | `Model not found` | Check model ID matches loaded/pulled model |
 | `Out of memory` | Use smaller model (8B instead of 20B, or phi3) |
-| `Import errors` | Re-run `pip install -r requirements.txt` |
+| `Import errors` | Re-run `uv sync` |
+| `Python version error` | Ensure you're using Python 3.10+ |
 
 ## Next Steps
 

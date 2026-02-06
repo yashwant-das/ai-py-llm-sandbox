@@ -1,0 +1,85 @@
+[project]
+name = "genai-systems-playground"
+version = "0.1.0"
+description = "A practical, hands-on sandbox for learning and experimenting with Generative AI systems"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    # Core Dependencies
+    "langchain>=0.3.0",
+    "langchain-openai>=0.2.0",
+    "langchainhub>=0.1.0",
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
+    "python-dotenv>=1.0.0",
+    # Advanced Prompting / Agents
+    "langgraph>=0.2.0",
+    # Function Calling / Agents
+    "ddgs>=9.10.0",
+    # Development & Testing
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "black>=24.0.0",
+    "ruff>=0.4.0",
+    "mypy>=1.10.0",
+]
+
+[project.optional-dependencies]
+# Topic 3: LLM Landscape / Topic 9,16: Vector Search
+vector = [
+    "chromadb>=0.5.0",
+    "faiss-cpu>=1.8.0",
+    "sentence-transformers>=3.0.0",
+]
+
+# Topic 4,14: Safety & Security
+safety = [
+    "transformers>=4.40.0",
+    "detoxify>=0.5.0",
+]
+
+# Topic 17: Hugging Face Ecosystem
+huggingface = [
+    "transformers>=4.40.0",
+    "datasets>=2.19.0",
+    "accelerate>=0.30.0",
+    "peft>=0.11.0",
+    "bitsandbytes>=0.43.0",
+    "huggingface-hub>=0.23.0",
+]
+
+# Topic 19: Fine-Tuning
+finetuning = [
+    "peft>=0.11.0",
+    "trl>=0.8.0",
+    "wandb>=0.17.0",
+]
+
+# Topic 20: Small Language Models / Edge
+edge = [
+    "llama-cpp-python>=0.2.0",
+    "onnx>=1.16.0",
+    "onnxruntime>=1.18.0",
+]
+
+# Topic 11: Low-Code Frameworks
+lowcode = [
+    "gradio>=4.0.0",
+    "streamlit>=1.35.0",
+    "chainlit>=1.0.0",
+]
+
+# Topic 10: Image Generation
+image = [
+    "requests>=2.31.0",
+    "pillow>=10.0.0",
+]
+
+# All optional dependencies
+all = [
+    "genai-systems-playground[vector,safety,huggingface,finetuning,edge,lowcode,image]",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
