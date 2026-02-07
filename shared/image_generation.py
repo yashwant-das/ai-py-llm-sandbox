@@ -1,21 +1,11 @@
 """
-NVIDIA API Shared Functions
-============================
-Common functions for interacting with NVIDIA's cloud APIs.
+NVIDIA API Image Generation Functions
+=====================================
+Common functions for interacting with NVIDIA's cloud APIs for image generation.
 """
 
 import base64
-from pathlib import Path
-
 import requests
-
-# Import from shared configuration (project root must be in path)
-import sys
-
-project_root = str(Path(__file__).parent.parent.parent)
-if project_root not in sys.path:
-    sys.path.insert(0, project_root)
-
 from shared import get_settings
 
 
@@ -71,14 +61,30 @@ def generate_image(
 
         # Parse response
         result = response.json()
+        
+        # Extract base64 image data
+        # NVIDIA API typically returns: {"artifacts": [{"base64": "..."}]}
+        # or OpenAI format: {"data": [{"b64_json": "..."}]}
+        
+        image_data = None
+        if "artifacts" in result and len(result["artifacts"]) > 0:
+            image_data = result["artifacts"][0].get("base64")
+        elif "data" in result and len(result["data"]) > 0:
+             image_data = result["data"][0].get("b64_json")
+             
+        if image_data:
+            return base64.b64decode(image_data)
+            
+        return None
 
-        # Get image data (base64 encoded)
-        if "data" in result and len(result["data"]) > 0:
-            image_data = base64.b64decode(result["data"][0]["b64_json"])
-            return image_data
+    except requests.exceptions.HTTPError as e:
+        if e.response.status_code == 404:
+            print("   ❌ Error: 404 Not Found (Endpoint unavailable)")
+            print("   ℹ️  Note: Your current NVIDIA API key/entitlements may not include Image Generation models.")
+            print("       This feature requires specific access to models like 'stabilityai/stable-diffusion-xl'.")
+            print("       Check your available models list.")
         else:
-            return None
-
-    except Exception as e:
-        print(f"   ❌ Error: {e}")
+            print(f"   ❌ API Error: {e}")
+            if hasattr(e, "response") and e.response:
+                print(f"   Response: {e.response.text}")
         return None

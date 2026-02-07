@@ -10,6 +10,7 @@ dependencies = [
     "python-dotenv>=1.0.0",
     "pydantic>=2.0.0",
     "pydantic-settings>=2.0.0",
+    "tiktoken>=0.7.0",
     # Development & Testing
     "pytest>=8.0.0",
     "pytest-asyncio>=0.23.0",
@@ -69,9 +70,14 @@ image = [
     "pillow>=10.0.0",
 ]
 
+# Topic 18: AI Agents
+agents = [
+    "ddgs>=4.0.0",
+]
+
 # All optional dependencies
 all = [
-    "genai-systems-playground[vector,safety,huggingface,finetuning,edge,lowcode,image]",
+    "genai-systems-playground[vector,safety,huggingface,finetuning,edge,lowcode,image,agents]",
 ]
 
 [build-system]

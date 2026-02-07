@@ -20,9 +20,15 @@ Usage:
 
 import time
 from datetime import datetime
+import sys
 from pathlib import Path
 
-from ..shared.nvidia_api import generate_image as _generate_image
+# Add project root to path for shared imports
+project_root = str(Path(__file__).parent.parent.parent)
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+from shared.image_generation import generate_image as _generate_image
 
 # Output directory for generated images
 OUTPUT_DIR = Path("10_image_generation/output/batch")

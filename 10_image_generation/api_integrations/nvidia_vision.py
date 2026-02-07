@@ -20,10 +20,8 @@ from shared import get_settings
 
 # Recommended vision models from your available list
 VISION_MODELS = {
-    "neva": "nvidia/neva-22b",  # General vision understanding
-    "vila": "nvidia/vila",  # Vision-language assistant
+    "llama_vision": "meta/llama-3.2-90b-vision-instruct",  # Large vision model (Recommended)
     "nemotron_vl": "nvidia/llama-3.1-nemotron-nano-vl-8b-v1",  # Small vision model
-    "llama_vision": "meta/llama-3.2-90b-vision-instruct",  # Large vision model
 }
 
 
@@ -51,7 +49,7 @@ def encode_image(image_path):
         return None
 
 
-def analyze_image(image_path, question, model="nvidia/neva-22b"):
+def analyze_image(image_path, question, model="meta/llama-3.2-90b-vision-instruct"):
     """
     Analyze an image using NVIDIA's vision model.
 
@@ -137,7 +135,7 @@ def analyze_image(image_path, question, model="nvidia/neva-22b"):
         return None
 
 
-def describe_image(image_path, model="nvidia/neva-22b"):
+def describe_image(image_path, model="meta/llama-3.2-90b-vision-instruct"):
     """
     Get a detailed description of an image.
 
@@ -187,7 +185,7 @@ def main():
 
     # Example 1: Basic description
     print("--- Example 1: Image Description ---")
-    description = describe_image(test_image, model=VISION_MODELS["neva"])
+    description = describe_image(test_image, model=VISION_MODELS["llama_vision"])
     if description:
         print(f"\n📝 Description:\n{description}")
     print()

@@ -8,11 +8,7 @@ import os
 from functools import lru_cache
 from typing import Optional
 
-try:
-    from pydantic_settings import BaseSettings
-except ImportError:
-    # Fallback for older pydantic versions
-    from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
@@ -23,8 +19,8 @@ class Settings(BaseSettings):
     nvidia_base_url: str = "https://integrate.api.nvidia.com/v1"
 
     # Default Models
-    # Llama 3.1 405B Instruct is a powerful model for learning
-    default_model: str = "meta/llama-3.1-405b-instruct"
+    # Llama 3.3 70B Instruct is the current best balance of speed and intelligence
+    default_model: str = "meta/llama-3.3-70b-instruct"
     default_temperature: float = 0.5
 
     # Application Settings
