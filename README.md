@@ -37,137 +37,54 @@ See [`UV_SETUP.md`](UV_SETUP.md) for detailed UV instructions.
 
 ## Repository Structure
 
-This repository is organized into 21 progressive topics, from fundamentals to specialized areas:
+The repository is organized into a clean, progressive learning path:
 
-### Foundation (Topics 1-4)
+### 1. Foundations
+*   [`01_setup/`](01_setup/): Environment setup and API configuration.
+*   [`02_fundamentals/`](02_fundamentals/): LLM basics, tokens, parameters (temp, top_p).
+*   [`03_models/`](03_models/): Understanding model families (Llama, Mistral) and selection.
 
-| Topic | Folder                                             | Description                                 |
-| ----- | -------------------------------------------------- | ------------------------------------------- |
-| 1     | [`01_setup/`](01_setup/)                           | Development environment, Nvidia API Setup   |
-| 2     | [`02_genai_fundamentals/`](02_genai_fundamentals/) | LLM basics, tokens, embeddings, sampling    |
-| 3     | [`03_llm_landscape/`](03_llm_landscape/)           | Comparing models, benchmarks, selection     |
-| 4     | [`04_ethics_and_safety/`](04_ethics_and_safety/)   | Bias, safety, prompt injection, red teaming |
+### 2. Core Skills
+*   [`04_prompting/`](04_prompting/): From zero-shot to advanced Chain-of-Thought (CoT).
+*   [`05_embeddings_rag/`](05_embeddings_rag/): Vector search and Retrieval Augmented Generation.
 
-### Core Skills (Topics 5-6)
+### 3. Building Applications
+*   [`06_tools_agents/`](06_tools_agents/): Function calling and ReAct agents.
+*   [`07_multimodal/`](07_multimodal/): Image generation and vision capabilities.
 
-| Topic | Folder                                                                       | Description                                   |
-| ----- | ---------------------------------------------------------------------------- | --------------------------------------------- |
-| 5     | [`05_prompt_engineering_fundamentals/`](05_prompt_engineering_fundamentals/) | Zero-shot, few-shot, role prompting           |
-| 6     | [`06_advanced_prompting/`](06_advanced_prompting/)                           | CoT, self-consistency, structured output, ToT |
+### 4. Advanced & Local
+*   [`08_local_inference/`](08_local_inference/): Running models locally (HuggingFace, Ollama).
+*   [`09_safety/`](09_safety/): Core AI safety and ethics concepts.
 
-### Applications (Topics 7-11)
-
-| Topic | Folder                                                 | Description                           |
-| ----- | ------------------------------------------------------ | ------------------------------------- |
-| 7     | [`07_text_generation_apps/`](07_text_generation_apps/) | Email writers, content expanders      |
-| 8     | [`08_chat_applications/`](08_chat_applications/)       | Conversational interfaces with memory |
-| 9     | [`09_search_with_vectors/`](09_search_with_vectors/)   | Semantic search, FAISS, Chroma        |
-| 10    | [`10_image_generation/`](10_image_generation/)         | Text-to-image, prompt enhancement     |
-| 11    | [`11_low_code_genai/`](11_low_code_genai/)             | Gradio, Streamlit, Chainlit           |
-
-### Integration & Systems (Topics 12-16)
-
-| Topic | Folder                                         | Description                                   |
-| ----- | ---------------------------------------------- | --------------------------------------------- |
-| 12    | [`12_function_calling/`](12_function_calling/) | Tool use, function calling, orchestration     |
-| 13    | [`13_ux_for_ai/`](13_ux_for_ai/)               | Streaming, confidence indicators, HITL        |
-| 14    | [`14_security/`](14_security/)                 | OWASP LLM, sandboxing, defenses               |
-| 15    | [`15_llmops_lifecycle/`](15_llmops_lifecycle/) | Prompt versioning, A/B testing, observability |
-| 16    | [`16_rag_systems/`](16_rag_systems/)           | RAG pipelines, chunking, evaluation           |
-
-### Specialized Topics (Topics 17-21)
-
-| Topic | Folder                                                   | Description                                    |
-| ----- | -------------------------------------------------------- | ---------------------------------------------- |
-| 17    | [`17_huggingface_ecosystem/`](17_huggingface_ecosystem/) | Open-source models, Transformers, quantization |
-| 18    | [`18_ai_agents/`](18_ai_agents/)                         | ReAct, Modern Agent Patterns                   |
-| 19    | [`19_fine_tuning/`](19_fine_tuning/)                     | LoRA, PEFT, dataset preparation                |
-| 20    | [`20_small_language_models/`](20_small_language_models/) | Phi-3, Gemma, edge deployment                  |
-| 21    | [`21_mistral_meta_families/`](21_mistral_meta_families/) | Mistral, Mixtral, Llama 3.1                    |
-
-### Shared Infrastructure
-
-| Folder               | Purpose                                        |
-| -------------------- | ---------------------------------------------- |
-| [`shared/`](shared/) | LLM providers, configuration, common utilities |
-| [`data/`](data/)     | Datasets, embeddings cache (gitignored)        |
-| [`tests/`](tests/)   | Unit and integration tests                     |
-
-## Design Principles
-
-### Raw SDK First
-
-- **Fundamentals**: Raw OpenAI-style SDK usage for transparency and learning.
-- **Nvidia-Powered**: We use NVIDIA's API to access open-weights models (Llama 3, etc.) without local hardware requirements.
-- **Framework-Free Core**: We avoid heavy frameworks like LangChain for the core examples to ensure you understand the underlying mechanics.
-
-### Progressive Complexity
-
-```
-Topics 1-4:   Foundation (concepts, ethics, setup)
-Topics 5-6:   Core Skills (prompt engineering)
-Topics 7-11:  Applications (building things)
-Topics 12-16: Systems (integration, lifecycle)
-Topics 17-21: Specialized (OSS, agents, fine-tuning)
-```
+> **Note:** Older or specific application examples have been moved to `_archive/` to keep the learning path clear.
 
 ## Running Examples
 
 ### Prerequisites
+1.  **NVIDIA API Key**: Free at [build.nvidia.com](https://build.nvidia.com/)
+2.  **UV Installed**: `curl -LsSf https://astral.sh/uv/install.sh | sh`
 
-1. **NVIDIA API Key**
-   - Get one for free at [build.nvidia.com](https://build.nvidia.com/)
-
-2. **Python Environment**
-
-   ```bash
-   # Install UV (if not already installed)
-   curl -LsSf https://astral.sh/uv/install.sh | sh
-
-   # Install dependencies (requires Python 3.10+)
-   uv sync
-   ```
-
-3. **Environment Variables**
-   ```bash
-   cp .env.example .env
-   # Edit .env and set NVIDIA_API_KEY
-   ```
-
-### Example Commands
-
+### Setup
 ```bash
-# Prompt Engineering
-uv run python 05_prompt_engineering_fundamentals/code/01_zero_shot.py
-uv run python 05_prompt_engineering_fundamentals/code/02_few_shot.py
-
-# Advanced Techniques
-uv run python 06_advanced_prompting/code/01_chain_of_thought.py
-uv run python 06_advanced_prompting/code/04_structured_output.py
-
-# Agents
-uv run python 18_ai_agents/fundamentals/01_react_pattern.py
-
-# Image Generation (requires --extra image)
-uv run python 10_image_generation/api_integrations/nvidia_vision.py
+uv sync
+cp .env.example .env
+# Edit .env and set NVIDIA_API_KEY
 ```
 
-## Key Dependencies
+### Quick Start Commands
+```bash
+# fundamentals
+uv run python 02_fundamentals/experiments/01_token_counting.py
 
+# prompting
+uv run python 04_prompting/code/01_zero_shot.py
+
+# agents
+uv run python 06_tools_agents/agents/fundamentals/01_react_pattern.py
+
+# multimodal
+uv run python 07_multimodal/api_integrations/nvidia_vision.py
 ```
-openai>=1.0.0             # Core SDK
-pydantic-settings>=2.0.0  # Configuration
-python-dotenv>=1.0.0      # Env vars
-```
-
-See [`pyproject.toml`](pyproject.toml) for complete list with optional dependencies organized by topic.
-
-## Resources
-
-- [Nvidia Build](https://build.nvidia.com/)
-- [OpenAI Python SDK](https://github.com/openai/openai-python)
-- [Prompt Engineering Guide](https://www.promptingguide.ai/)
 
 ## License
-
 MIT License — See [LICENSE](LICENSE) for details.

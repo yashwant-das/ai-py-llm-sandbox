@@ -16,7 +16,9 @@ from pathlib import Path
 import time
 
 # Add project root to path for shared imports
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+project_root = str(Path(__file__).parent.parent.parent.absolute())
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 from shared import get_nvidia_client, get_settings
 

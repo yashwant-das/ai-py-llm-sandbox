@@ -14,9 +14,9 @@ from pathlib import Path
 import json
 
 # Add project root to path for shared imports
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 
-from ddgs import DDGS
+from duckduckgo_search import DDGS
 from shared import get_nvidia_client, get_settings
 
 # Initialize client
