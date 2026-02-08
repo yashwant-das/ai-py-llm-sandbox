@@ -19,11 +19,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 client = OpenAI(
-    base_url="https://integrate.api.nvidia.com/v1",
-    api_key=os.getenv("NVIDIA_API_KEY")
+    base_url=os.getenv("LLM_BASE_URL", "https://integrate.api.nvidia.com/v1"),
+    api_key=os.getenv("LLM_API_KEY", os.getenv("NVIDIA_API_KEY", "nvapi-dummy"))
 )
 
-DEFAULT_MODEL = "meta/llama-3.1-405b-instruct"
+DEFAULT_MODEL = os.getenv("LLM_MODEL_ID", "meta/llama-3.1-405b-instruct")
 
 print(f"Model: {DEFAULT_MODEL}")
 print()

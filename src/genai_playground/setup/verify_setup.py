@@ -35,7 +35,6 @@ def check_packages():
     print("\nChecking required packages...")
     required = [
         "openai",
-        "pydantic",
         "dotenv",
     ]
 
@@ -56,10 +55,10 @@ def check_packages():
     return all_ok
 
 
-def check_nvidia_connection():
-    """Test connection to NVIDIA API."""
-    print("\nChecking NVIDIA API connectivity...")
-
+def check_llm_connection():
+    """Verify connection to the configured LLM provider."""
+    print("\nChecking LLM Provider Connection...")
+    
     try:
         import os
         from openai import OpenAI
@@ -67,23 +66,21 @@ def check_nvidia_connection():
         
         load_dotenv()
         
-        api_key = os.getenv("NVIDIA_API_KEY")
-
-        if not api_key or "nvapi" not in api_key:
-            print("  ✗ API Key appears missing or invalid (should start with 'nvapi-')")
-            print("    Check your .env file.")
-            return False
-
-        base_url = "https://integrate.api.nvidia.com/v1"
-        model = "meta/llama-3.1-405b-instruct"
+        # Get configuration with defaults
+        base_url = os.getenv("LLM_BASE_URL", "https://integrate.api.nvidia.com/v1")
+        api_key = os.getenv("LLM_API_KEY", os.getenv("NVIDIA_API_KEY"))
+        model = os.getenv("LLM_MODEL_ID", "meta/llama-3.1-405b-instruct")
 
         print(f"  Base URL: {base_url}")
-        print(f"  Model: {model}")
+        print(f"  Model:    {model}")
+
+        if not api_key and "nvidia" in base_url:
+             print("  ⚠️  Warning: No API key found (required for NVIDIA).")
 
         # Try to initialize Client
         client = OpenAI(
             base_url=base_url,
-            api_key=api_key
+            api_key=api_key or "unused"
         )
 
         # Simple test prompt
@@ -92,16 +89,16 @@ def check_nvidia_connection():
             messages=[
                 {
                     "role": "user",
-                    "content": "Say 'NVIDIA setup verified!' and nothing else.",
+                    "content": "Say 'Connection verified!'",
                 }
             ],
-            max_tokens=20,
+            max_tokens=10,
         )
 
         content = response.choices[0].message.content
 
         if content:
-            print("  ✓ NVIDIA API responding")
+            print("  ✓ Provider is responding")
             print(f"  Response: {content.strip()}")
             return True
         else:
@@ -111,9 +108,8 @@ def check_nvidia_connection():
     except Exception as e:
         print(f"  ✗ Connection failed: {e}")
         print("\n  Troubleshooting:")
-        print("  1. Verify NVIDIA_API_KEY in .env")
-        print("  2. Check internet connection")
-        print("  3. Ensure you have credits/access at build.nvidia.com")
+        print("  1. Check .env configuration (LLM_BASE_URL, LLM_API_KEY)")
+        print("  2. If using Ollama/Local, ensure usage server is running")
         return False
 
 
@@ -127,7 +123,7 @@ def main():
 
     results.append(("Python Version", check_python_version()))
     results.append(("Required Packages", check_packages()))
-    results.append(("NVIDIA API Connection", check_nvidia_connection()))
+    results.append(("LLM Provider Connection", check_llm_connection()))
 
     print("\n" + "=" * 60)
     print("Verification Summary")

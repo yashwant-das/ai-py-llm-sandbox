@@ -21,19 +21,9 @@ uv run python src/genai_playground/setup/verify_setup.py
 uv run python src/genai_playground/prompting/zero_shot.py
 ```
 
-**For topic-specific dependencies:**
 
-```bash
-# Install all optional dependencies
-uv sync --all-extras
 
-# Or install specific topic dependencies
-uv sync --extra vector      # For RAG & Embeddings
-uv sync --extra image       # For Multimodal
-uv sync --extra huggingface # For Local Inference
-```
 
-See [`UV_SETUP.md`](UV_SETUP.md) for detailed UV instructions.
 
 
 ## Running Examples

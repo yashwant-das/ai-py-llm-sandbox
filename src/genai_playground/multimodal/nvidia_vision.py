@@ -15,8 +15,6 @@ from dotenv import load_dotenv
 # Load env vars
 load_dotenv()
 
-API_KEY = os.getenv("NVIDIA_API_KEY")
-
 def encode_image(image_path):
     """Encodes image to base64."""
     with open(image_path, "rb") as image_file:
@@ -24,51 +22,45 @@ def encode_image(image_path):
 
 def analyze_image(image_path, question="Describe this image"):
     """Ask a question about an image."""
-    if not API_KEY:
+    base_url = os.getenv("LLM_BASE_URL", "https://integrate.api.nvidia.com/v1")
+    api_key = os.getenv("LLM_API_KEY", os.getenv("NVIDIA_API_KEY"))
+    model = os.getenv("LLM_MODEL_ID", "meta/llama-3.2-90b-vision-instruct")
+
+    if not api_key and "nvidia" in base_url:
         print("❌ API Key Missing")
         return None
 
     print(f"🔍 Analyzing: '{image_path}' with '{question}'")
-    
-    url = "https://integrate.api.nvidia.com/v1/chat/completions"
+    print(f"  Provider: {base_url}")
+    print(f"  Model:    {model}")
     
     try:
+        from openai import OpenAI
+        client = OpenAI(base_url=base_url, api_key=api_key or "unused")
+        
         image_b64 = encode_image(image_path)
+        
+        response = client.chat.completions.create(
+            model=model,
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": question},
+                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_b64}"}}
+                    ]
+                }
+            ],
+            max_tokens=512,
+        )
+        
+        answer = response.choices[0].message.content
+        print(f"✅ Answer: {answer}")
+        return answer
+            
     except FileNotFoundError:
         print(f"❌ File not found: {image_path}")
         return None
-
-    payload = {
-        "model": "meta/llama-3.2-90b-vision-instruct",
-        "messages": [
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": question},
-                    {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_b64}"}}
-                ]
-            }
-        ],
-        "max_tokens": 512
-    }
-
-    try:
-        response = requests.post(
-            url, 
-            headers={"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"},
-            json=payload,
-            timeout=60
-        )
-        
-        if response.status_code == 200:
-            result = response.json()
-            answer = result["choices"][0]["message"]["content"]
-            print(f"✅ Answer: {answer}")
-            return answer
-        else:
-            print(f"❌ Error {response.status_code}: {response.text}")
-            return None
-            
     except Exception as e:
         print(f"❌ Exception: {e}")
         return None

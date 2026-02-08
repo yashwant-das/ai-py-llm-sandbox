@@ -19,14 +19,14 @@ from dotenv import load_dotenv
 load_dotenv()
 
 client = OpenAI(
-    base_url="https://integrate.api.nvidia.com/v1",
-    api_key=os.getenv("NVIDIA_API_KEY")
+    base_url=os.getenv("LLM_BASE_URL", "https://integrate.api.nvidia.com/v1"),
+    api_key=os.getenv("LLM_API_KEY", os.getenv("NVIDIA_API_KEY", "nvapi-dummy"))
 )
 
 # Define models to compare
 # These should be models available in your NVIDIA account / credits
 MODELS = {
-    "Llama 3 405B": "meta/llama-3.1-405b-instruct",
+    "Configured Model": os.getenv("LLM_MODEL_ID", "meta/llama-3.1-405b-instruct"),
     "Llama 3 8B": "meta/llama-3.1-8b-instruct",
     "Nemotron 70B": "nvidia/llama-3.1-nemotron-70b-instruct",
 }

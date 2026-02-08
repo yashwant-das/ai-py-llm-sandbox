@@ -6,8 +6,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 client = OpenAI(
-    base_url="https://integrate.api.nvidia.com/v1",
-    api_key=os.getenv("NVIDIA_API_KEY")
+    base_url=os.getenv("LLM_BASE_URL", "https://integrate.api.nvidia.com/v1"),
+    api_key=os.getenv("LLM_API_KEY", os.getenv("NVIDIA_API_KEY", "nvapi-dummy"))
 )
 
 def safe_completion(prompt):
@@ -23,7 +23,7 @@ def safe_completion(prompt):
     Refuse to answer output that promotes violence, hate speech, or illegal acts."""
     
     response = client.chat.completions.create(
-        model="meta/llama-3.1-405b-instruct",
+        model=os.getenv("LLM_MODEL_ID", "meta/llama-3.1-405b-instruct"),
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": prompt}
