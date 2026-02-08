@@ -9,24 +9,26 @@ Refactored to use the raw OpenAI SDK with native Tool Calling (Function Calling)
 Topic: 18_ai_agents
 """
 
-import sys
-from pathlib import Path
+import os
 import json
+from openai import OpenAI
+from dotenv import load_dotenv
 
-# Add project root to path for shared imports
-sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
+load_dotenv()
 
 from duckduckgo_search import DDGS
-from shared import get_nvidia_client, get_settings
 
-# Initialize client
-client = get_nvidia_client()
-settings = get_settings()
+client = OpenAI(
+    base_url="https://integrate.api.nvidia.com/v1",
+    api_key=os.getenv("NVIDIA_API_KEY")
+)
+
+DEFAULT_MODEL = "meta/llama-3.1-405b-instruct"
 
 print("=" * 80)
 print("ReAct AGENT (Raw SDK + Tool Calling)")
 print("=" * 80)
-print(f"Model: {settings.default_model}")
+print(f"Model: {DEFAULT_MODEL}")
 
 # --- Tool Definitions ---
 
@@ -127,7 +129,7 @@ def run_agent(query):
     for _ in range(5):  # Limit turns
         try:
             response = client.chat.completions.create(
-                model=settings.default_model,
+                model=DEFAULT_MODEL,
                 messages=messages,
                 tools=tools_schema,
                 tool_choice="auto",

@@ -11,24 +11,17 @@ Concepts:
 - Consistency across models
 """
 
-import sys
-from pathlib import Path
+import os
 import time
+from openai import OpenAI
+from dotenv import load_dotenv
 
-# Add project root to path for shared imports
-project_root = str(Path(__file__).parent.parent.parent.absolute())
-if project_root not in sys.path:
-    sys.path.insert(0, project_root)
+load_dotenv()
 
-from shared import get_nvidia_client, get_settings
-
-print("=" * 70)
-print("MODEL COMPARISON EXPERIMENT (NVIDIA API)")
-print("=" * 70)
-
-# Initialize client
-client = get_nvidia_client()
-settings = get_settings()
+client = OpenAI(
+    base_url="https://integrate.api.nvidia.com/v1",
+    api_key=os.getenv("NVIDIA_API_KEY")
+)
 
 # Define models to compare
 # These should be models available in your NVIDIA account / credits

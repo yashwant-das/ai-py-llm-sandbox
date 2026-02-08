@@ -1,36 +1,30 @@
 
-import sys
+import os
 import requests
 from pathlib import Path
+from openai import OpenAI
+from dotenv import load_dotenv
 
-# Add project root to path
-# Add project root to path
-sys.path.insert(0, str(Path(__file__).parent.parent.absolute()))
-
-# Create shared module import capability
-try:
-    from shared import get_nvidia_client, get_settings
-except ImportError:
-    # Fallback if running from proper location
-    sys.path.append("..")
-    from shared import get_nvidia_client, get_settings
-
+load_dotenv()
 
 def list_models():
-    settings = get_settings()
+    api_key = os.getenv("NVIDIA_API_KEY")
     
     # 1. Check API Key
-    if not settings.nvidia_api_key:
+    if not api_key:
         print("❌ NVIDIA_API_KEY is not configured in .env")
         print("   Get a key from https://build.nvidia.com/")
         return
 
-    print(f"✅ NVIDIA_API_KEY found: {settings.nvidia_api_key[:4]}...{settings.nvidia_api_key[-4:]}")
+    print(f"✅ NVIDIA_API_KEY found: {api_key[:4]}...{api_key[-4:]}")
 
     # 2. List LLMs via Standard API
     print("\n--- Listing Available LLMs (via /models) ---")
     try:
-        client = get_nvidia_client()
+        client = OpenAI(
+            base_url="https://integrate.api.nvidia.com/v1",
+            api_key=api_key
+        )
         response = client.models.list()
         
         llm_count = 0
@@ -53,7 +47,7 @@ def list_models():
     ]
     
     headers = {
-        "Authorization": f"Bearer {settings.nvidia_api_key}",
+        "Authorization": f"Bearer {api_key}",
         "Accept": "application/json"
     }
     

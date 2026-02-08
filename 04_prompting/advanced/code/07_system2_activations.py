@@ -10,23 +10,21 @@ Key Idea: Inspired by Kahneman's "Thinking Fast and Slow":
 LLMs often default to System 1. These techniques activate System 2.
 """
 
-import sys
-from pathlib import Path
+import os
+from openai import OpenAI
+from dotenv import load_dotenv
 
-# Add project root to path for shared imports
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+load_dotenv()
 
-from shared import get_nvidia_client, get_settings
-
-# Initialize client
-client = get_nvidia_client()
-settings = get_settings()
-
+client = OpenAI(
+    base_url="https://integrate.api.nvidia.com/v1",
+    api_key=os.getenv("NVIDIA_API_KEY")
+)
 
 def get_completion(prompt, temperature=0.1):
     """Helper to get completion from NVIDIA API"""
     response = client.chat.completions.create(
-        model=settings.default_model,
+        model="meta/llama-3.1-405b-instruct",
         messages=[{"role": "user", "content": prompt}],
         temperature=temperature,
     )

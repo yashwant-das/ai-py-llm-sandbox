@@ -5,41 +5,27 @@ Guiding the model to produce output in a specific format (JSON, XML, YAML, etc.)
 This is crucial for integrating LLMs with applications and APIs.
 """
 
-import sys
-from pathlib import Path
+import os
 import json
+from openai import OpenAI
+from dotenv import load_dotenv
 
-# Add project root to path for shared imports
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+load_dotenv()
 
-from shared import get_nvidia_client, get_settings
-
-# Initialize client
-client = get_nvidia_client()
-settings = get_settings()
-
+client = OpenAI(
+    base_url="https://integrate.api.nvidia.com/v1",
+    api_key=os.getenv("NVIDIA_API_KEY")
+)
 
 def get_completion(prompt, temperature=0.1, json_mode=False):
     """Helper to get completion from NVIDIA API"""
     messages = [{"role": "user", "content": prompt}]
-
-    # Enable JSON mode if supported/requested
-    # Note: Not all models enforce JSON mode via API parameter,
-    # so we often rely on prompt engineering, but we can try setting response_format if supported.
-    kwargs = {}
-    if json_mode:
-        # Some providers support response_format={"type": "json_object"}
-        # For this generic example we will stick to prompt engineering +
-        # explicit system instruction to be safe across models.
-        if "llama-3" in settings.default_model or "nemotron" in settings.default_model:
-            # Llama 3 often respects explicit JSON prompts well
-            pass
-
+    
+    # Simple direct call
     response = client.chat.completions.create(
-        model=settings.default_model,
+        model="meta/llama-3.1-405b-instruct",
         messages=messages,
         temperature=temperature,
-        **kwargs,
     )
     return response.choices[0].message.content
 

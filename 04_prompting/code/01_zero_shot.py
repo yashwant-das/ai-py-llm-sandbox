@@ -5,13 +5,25 @@ The simplest form of prompting - just give the model an instruction
 directly without any examples. The model relies on its pre-trained knowledge.
 """
 
-import sys
-from pathlib import Path
+import os
+from openai import OpenAI
+from dotenv import load_dotenv
 
-# Add project root to path for shared imports
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+load_dotenv()
 
-from utils.llm_client import get_completion
+client = OpenAI(
+    base_url="https://integrate.api.nvidia.com/v1",
+    api_key=os.getenv("NVIDIA_API_KEY")
+)
+
+def get_completion(prompt, temperature=0.7):
+    response = client.chat.completions.create(
+        model="meta/llama-3.1-405b-instruct",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=temperature,
+        max_tokens=1024,
+    )
+    return response.choices[0].message.content
 
 print("=" * 80)
 print("ZERO-SHOT PROMPTING EXAMPLES (NVIDIA API)")

@@ -11,26 +11,21 @@ Concepts:
 - Perceived performance
 """
 
-import sys
-from pathlib import Path
+import os
 import time
+from openai import OpenAI
+from dotenv import load_dotenv
 
-# Add project root to path for shared imports
-project_root = str(Path(__file__).parent.parent.parent.absolute())
-if project_root not in sys.path:
-    sys.path.insert(0, project_root)
+load_dotenv()
 
-from shared import get_nvidia_client, get_settings
+client = OpenAI(
+    base_url="https://integrate.api.nvidia.com/v1",
+    api_key=os.getenv("NVIDIA_API_KEY")
+)
 
-print("=" * 70)
-print("STREAMING RESPONSES EXPERIMENT (NVIDIA API)")
-print("=" * 70)
+DEFAULT_MODEL = "meta/llama-3.1-405b-instruct"
 
-# Initialize client
-client = get_nvidia_client()
-settings = get_settings()
-
-print(f"Model: {settings.default_model}")
+print(f"Model: {DEFAULT_MODEL}")
 print()
 
 print("1. NON-STREAMING (Default)")
@@ -41,7 +36,7 @@ prompt = "Explain photosynthesis in 3 sentences."
 
 start = time.time()
 response = client.chat.completions.create(
-    model=settings.default_model,
+    model=DEFAULT_MODEL,
     messages=[{"role": "user", "content": prompt}],
     stream=False,  # Default
 )
@@ -61,7 +56,7 @@ start = time.time()
 first_token_time = None
 
 stream = client.chat.completions.create(
-    model=settings.default_model,
+    model=DEFAULT_MODEL,
     messages=[{"role": "user", "content": prompt}],
     stream=True,  # Enable streaming
 )
@@ -93,7 +88,7 @@ print("Accessing chunk metadata during streaming.\n")
 prompt = "Count from 1 to 5."
 
 stream = client.chat.completions.create(
-    model=settings.default_model,
+    model=DEFAULT_MODEL,
     messages=[{"role": "user", "content": prompt}],
     stream=True,
 )
@@ -132,7 +127,7 @@ print("-" * 70)
 print("A reusable pattern for your applications.\n")
 
 
-def stream_completion(prompt, model=settings.default_model):
+def stream_completion(prompt, model=DEFAULT_MODEL):
     """Stream a completion with simple output."""
     stream = client.chat.completions.create(
         model=model,

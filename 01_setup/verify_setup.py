@@ -16,8 +16,7 @@ Checks:
 import sys
 from pathlib import Path
 
-# Add project root to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
+
 
 
 def check_python_version():
@@ -63,24 +62,34 @@ def check_nvidia_connection():
     print("\nChecking NVIDIA API connectivity...")
 
     try:
-        from shared import get_nvidia_client, get_settings
+        import os
+        from openai import OpenAI
+        from dotenv import load_dotenv
+        
+        load_dotenv()
+        
+        api_key = os.getenv("NVIDIA_API_KEY")
 
-        settings = get_settings()
-
-        if not settings.nvidia_api_key or "nvapi" not in settings.nvidia_api_key:
+        if not api_key or "nvapi" not in api_key:
             print("  ✗ API Key appears missing or invalid (should start with 'nvapi-')")
             print("    Check your .env file.")
             return False
 
-        print(f"  Base URL: {settings.nvidia_base_url}")
-        print(f"  Model: {settings.default_model}")
+        base_url = "https://integrate.api.nvidia.com/v1"
+        model = "meta/llama-3.1-405b-instruct"
+
+        print(f"  Base URL: {base_url}")
+        print(f"  Model: {model}")
 
         # Try to initialize Client
-        client = get_nvidia_client()
+        client = OpenAI(
+            base_url=base_url,
+            api_key=api_key
+        )
 
         # Simple test prompt
         response = client.chat.completions.create(
-            model=settings.default_model,
+            model=model,
             messages=[
                 {
                     "role": "user",
