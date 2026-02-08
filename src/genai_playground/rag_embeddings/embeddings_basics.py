@@ -2,7 +2,7 @@
 
 Recommended embedding models:
 - OpenAI: text-embedding-3-small
-- NVIDIA: nvidia/nv-embedqa-e5-v5 (if available)
+- NVIDIA: nvidia/llama-3.2-nemoretriever-300m-embed-v2
 - Ollama: nomic-embed-text
 """
 
@@ -15,11 +15,18 @@ from openai import OpenAI
 
 load_dotenv()
 
+def require_env(name: str) -> str:
+    value = os.getenv(name)
+    if not value:
+        raise SystemExit(f"Missing required env var: {name}")
+    return value
+
+
 client = OpenAI(
-    base_url=os.getenv("LLM_BASE_URL", "https://integrate.api.nvidia.com/v1"),
-    api_key=os.getenv("LLM_API_KEY", os.getenv("NVIDIA_API_KEY", "unused")),
+    base_url=require_env("LLM_BASE_URL"),
+    api_key=require_env("LLM_API_KEY"),
 )
-MODEL = os.getenv("LLM_EMBEDDING_MODEL", "text-embedding-3-small")
+MODEL = require_env("LLM_EMBEDDING_MODEL")
 
 
 def cosine(a: list[float], b: list[float]) -> float:
@@ -29,17 +36,29 @@ def cosine(a: list[float], b: list[float]) -> float:
     return dot / (na * nb)
 
 
-docs = [
-    "Use indexes to speed up SQL WHERE lookups.",
-    "Caching reduces repeated database reads.",
-    "Gradient descent updates model parameters.",
-]
-query = "How can I make database queries faster?"
+def main() -> int:
+    docs = [
+        "Use indexes to speed up SQL WHERE lookups.",
+        "Caching reduces repeated database reads.",
+        "Gradient descent updates model parameters.",
+    ]
+    query = "How can I make database queries faster?"
 
-resp = client.embeddings.create(model=MODEL, input=docs + [query])
-vectors = [item.embedding for item in resp.data]
-doc_vecs, query_vec = vectors[:-1], vectors[-1]
+    try:
+        resp = client.embeddings.create(model=MODEL, input=docs + [query])
+    except Exception as exc:
+        print(f"Embedding endpoint unavailable for model '{MODEL}': {exc}")
+        print("Set LLM_EMBEDDING_MODEL in .env to a model your provider supports.")
+        return 0
 
-scores = [(doc, cosine(vec, query_vec)) for doc, vec in zip(docs, doc_vecs)]
-for doc, score in sorted(scores, key=lambda x: x[1], reverse=True):
-    print(f"{score:.4f} | {doc}")
+    vectors = [item.embedding for item in resp.data]
+    doc_vecs, query_vec = vectors[:-1], vectors[-1]
+
+    scores = [(doc, cosine(vec, query_vec)) for doc, vec in zip(docs, doc_vecs)]
+    for doc, score in sorted(scores, key=lambda x: x[1], reverse=True):
+        print(f"{score:.4f} | {doc}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

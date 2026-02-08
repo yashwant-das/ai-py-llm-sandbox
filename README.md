@@ -32,9 +32,10 @@ uv run python src/genai_playground/setup/verify_setup.py
 | Use Case | OpenAI | NVIDIA | Ollama / Local |
 |---|---|---|---|
 | General chat + prompting | `gpt-4o-mini` | `meta/llama-3.1-8b-instruct` | `llama3.1:8b` |
-| Function calling | `gpt-4o-mini` | `meta/llama-3.1-70b-instruct`* | model-dependent |
-| Vision | `gpt-4o-mini` | `meta/llama-3.2-90b-vision-instruct` | model-dependent |
-| Embeddings | `text-embedding-3-small` | `nvidia/nv-embedqa-e5-v5`* | `nomic-embed-text` |
+| Function calling | `gpt-4o-mini` | `meta/llama-3.1-8b-instruct` | model-dependent |
+| Vision | `gpt-4o-mini` | `meta/llama-3.2-11b-vision-instruct` | model-dependent |
+| Embeddings | `text-embedding-3-small` | `nvidia/llama-3.2-nemoretriever-300m-embed-v2` | `nomic-embed-text` |
+| Image generation | `gpt-image-1` | `stabilityai/stable-diffusion-xl`* | model-dependent |
 
 \* Availability depends on your NVIDIA account/model catalog.
 
@@ -80,11 +81,11 @@ uv run python src/genai_playground/safety/safety_demo.py
 ### 06 Multimodal
 
 ```bash
-# requires an image path in VISION_IMAGE_PATH (or data/sample.jpg)
+# requires VISION_IMAGE_PATH in .env
 uv run python src/genai_playground/multimodal/vision_basics.py
 
-# NVIDIA-specific image generation
-uv run python src/genai_playground/multimodal/nvidia_image_gen.py
+# OpenAI-compatible image generation (provider-dependent support)
+uv run python src/genai_playground/multimodal/image_generation.py
 ```
 
 ### 07 Local Inference

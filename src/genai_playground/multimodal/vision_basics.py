@@ -2,7 +2,7 @@
 
 Recommended vision models:
 - OpenAI: gpt-4o-mini
-- NVIDIA: meta/llama-3.2-90b-vision-instruct
+- NVIDIA: meta/llama-3.2-11b-vision-instruct
 """
 
 from __future__ import annotations
@@ -17,15 +17,30 @@ from openai import OpenAI
 
 load_dotenv()
 
-MODEL = os.getenv("LLM_VISION_MODEL", "meta/llama-3.2-90b-vision-instruct")
+def require_env(name: str) -> str:
+    value = os.getenv(name)
+    if not value:
+        raise SystemExit(f"Missing required env var: {name}")
+    return value
+
+
+MODEL = require_env("LLM_VISION_MODEL")
 client = OpenAI(
-    base_url=os.getenv("LLM_BASE_URL", "https://integrate.api.nvidia.com/v1"),
-    api_key=os.getenv("LLM_API_KEY", os.getenv("NVIDIA_API_KEY", "unused")),
+    base_url=require_env("LLM_BASE_URL"),
+    api_key=require_env("LLM_API_KEY"),
 )
 
-image_path = Path(os.getenv("VISION_IMAGE_PATH", "data/sample.jpg"))
+image_path_env = os.getenv("VISION_IMAGE_PATH")
+if not image_path_env:
+    raise SystemExit("Missing required env var: VISION_IMAGE_PATH")
+
+image_path = Path(image_path_env)
 if not image_path.exists():
-    raise SystemExit(f"Image not found: {image_path}")
+    print(
+        f"Image not found: {image_path}. Set VISION_IMAGE_PATH in .env "
+        "or place an image at data/sample.jpg."
+    )
+    raise SystemExit(0)
 
 mime = mimetypes.guess_type(str(image_path))[0] or "image/jpeg"
 b64 = base64.b64encode(image_path.read_bytes()).decode("utf-8")

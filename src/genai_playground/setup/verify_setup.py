@@ -10,6 +10,20 @@ import os
 import sys
 from importlib import import_module
 
+NVIDIA_LEARNING_MODELS = {
+    "chat": "meta/llama-3.1-8b-instruct",
+    "vision": "meta/llama-3.2-11b-vision-instruct",
+    "embedding": "nvidia/llama-3.2-nemoretriever-300m-embed-v2",
+    "image": "stabilityai/stable-diffusion-xl",
+}
+
+
+def required_env(name: str) -> str:
+    value = os.getenv(name)
+    if not value:
+        raise ValueError(f"Missing required env var: {name}")
+    return value
+
 
 def check_python() -> bool:
     version = sys.version_info
@@ -38,21 +52,14 @@ def check_llm_connection() -> bool:
 
         load_dotenv()
 
-        base_url = os.getenv("LLM_BASE_URL", "https://integrate.api.nvidia.com/v1")
-        model = os.getenv("LLM_MODEL_ID", "meta/llama-3.1-8b-instruct")
-        api_key = os.getenv("LLM_API_KEY", os.getenv("NVIDIA_API_KEY"))
-
-        if "localhost" in base_url and api_key is None:
-            api_key = "ollama"
+        base_url = required_env("LLM_BASE_URL")
+        model = required_env("LLM_MODEL_ID")
+        api_key = required_env("LLM_API_KEY")
 
         print(f"Provider URL: {base_url}")
         print(f"Model: {model}")
 
-        if not api_key and "nvidia" in base_url.lower():
-            print("LLM API key missing for NVIDIA provider.")
-            return False
-
-        client = OpenAI(base_url=base_url, api_key=api_key or "unused")
+        client = OpenAI(base_url=base_url, api_key=api_key)
         response = client.chat.completions.create(
             model=model,
             messages=[{"role": "user", "content": "Reply with: setup-ok"}],
@@ -90,7 +97,17 @@ def main() -> int:
     if all_ok:
         print("\nNext:")
         print("uv run python src/genai_playground/fundamentals/model_basics.py")
+        print("\nNVIDIA lightweight model suggestions:")
+        print(f"- Chat/Prompting: {NVIDIA_LEARNING_MODELS['chat']}")
+        print(f"- Vision: {NVIDIA_LEARNING_MODELS['vision']}")
+        print(f"- Embeddings: {NVIDIA_LEARNING_MODELS['embedding']}")
+        print(f"- Image generation: {NVIDIA_LEARNING_MODELS['image']}")
         return 0
+    print("\nNVIDIA lightweight model suggestions:")
+    print(f"- LLM_MODEL_ID={NVIDIA_LEARNING_MODELS['chat']}")
+    print(f"- LLM_VISION_MODEL={NVIDIA_LEARNING_MODELS['vision']}")
+    print(f"- LLM_EMBEDDING_MODEL={NVIDIA_LEARNING_MODELS['embedding']}")
+    print(f"- LLM_IMAGE_MODEL={NVIDIA_LEARNING_MODELS['image']}")
     return 1
 
 

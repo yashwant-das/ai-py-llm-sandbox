@@ -9,10 +9,17 @@ from openai import OpenAI
 
 load_dotenv()
 
-MODEL = os.getenv("LLM_MODEL_ID", "meta/llama-3.1-8b-instruct")
+def require_env(name: str) -> str:
+    value = os.getenv(name)
+    if not value:
+        raise SystemExit(f"Missing required env var: {name}")
+    return value
+
+
+MODEL = require_env("LLM_MODEL_ID")
 client = OpenAI(
-    base_url=os.getenv("LLM_BASE_URL", "https://integrate.api.nvidia.com/v1"),
-    api_key=os.getenv("LLM_API_KEY", os.getenv("NVIDIA_API_KEY", "unused")),
+    base_url=require_env("LLM_BASE_URL"),
+    api_key=require_env("LLM_API_KEY"),
 )
 
 prompt = "Explain HTTP vs HTTPS in 4 short bullets."
@@ -38,11 +45,16 @@ stream = client.chat.completions.create(
     stream=True,
 )
 for chunk in stream:
+    if not chunk.choices:
+        continue
     delta = chunk.choices[0].delta.content
     if delta:
         if first_token is None:
             first_token = time.time() - start
         print(delta, end="", flush=True)
 print()
-print(f"Time to first token: {first_token:.2f}s")
+if first_token is not None:
+    print(f"Time to first token: {first_token:.2f}s")
+else:
+    print("Time to first token: not available (no delta chunks received)")
 print(f"Total time: {time.time() - start:.2f}s")

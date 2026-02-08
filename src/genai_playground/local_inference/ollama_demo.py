@@ -8,17 +8,25 @@ Run first:
 from __future__ import annotations
 
 import os
+
 from dotenv import load_dotenv
 from openai import OpenAI
 
 load_dotenv()
 
-OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434").rstrip("/")
-OLLAMA_MODEL = os.getenv("OLLAMA_MODEL_ID", "llama3.1:8b")
+def require_env(name: str) -> str:
+    value = os.getenv(name)
+    if not value:
+        raise SystemExit(f"Missing required env var: {name}")
+    return value
+
+
+OLLAMA_BASE_URL = require_env("OLLAMA_BASE_URL").rstrip("/")
+OLLAMA_MODEL = require_env("OLLAMA_MODEL_ID")
 
 client = OpenAI(
     base_url=f"{OLLAMA_BASE_URL}/v1",
-    api_key=os.getenv("OLLAMA_API_KEY", "ollama"),
+    api_key=require_env("OLLAMA_API_KEY"),
 )
 
 try:

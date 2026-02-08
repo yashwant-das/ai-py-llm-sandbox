@@ -8,10 +8,17 @@ from openai import OpenAI
 
 load_dotenv()
 
-MODEL = os.getenv("LLM_MODEL_ID", "meta/llama-3.1-8b-instruct")
+def require_env(name: str) -> str:
+    value = os.getenv(name)
+    if not value:
+        raise SystemExit(f"Missing required env var: {name}")
+    return value
+
+
+MODEL = require_env("LLM_MODEL_ID")
 client = OpenAI(
-    base_url=os.getenv("LLM_BASE_URL", "https://integrate.api.nvidia.com/v1"),
-    api_key=os.getenv("LLM_API_KEY", os.getenv("NVIDIA_API_KEY", "unused")),
+    base_url=require_env("LLM_BASE_URL"),
+    api_key=require_env("LLM_API_KEY"),
 )
 
 prompt = "Suggest a memorable product name for a study-planning app."
@@ -20,14 +27,17 @@ for temp in [0.0, 0.3, 0.8]:
     print(f"\nTemperature = {temp}")
     print("-" * 50)
     for run in range(1, 4):
-        resp = client.chat.completions.create(
-            model=MODEL,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=temp,
-            max_tokens=30,
-        )
-        text = (resp.choices[0].message.content or "").strip()
-        print(f"Run {run}: {text}")
+        try:
+            resp = client.chat.completions.create(
+                model=MODEL,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=temp,
+                max_tokens=30,
+            )
+            text = (resp.choices[0].message.content or "").strip()
+            print(f"Run {run}: {text}")
+        except Exception as exc:
+            print(f"Run {run}: request failed ({exc})")
 
 print("\nRule of thumb:")
 print("- 0.0 to 0.3: factual or deterministic tasks")

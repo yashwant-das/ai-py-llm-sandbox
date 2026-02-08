@@ -8,49 +8,48 @@ from openai import OpenAI
 
 load_dotenv()
 
-MODEL = os.getenv("LLM_MODEL_ID", "meta/llama-3.1-8b-instruct")
+def require_env(name: str) -> str:
+    value = os.getenv(name)
+    if not value:
+        raise SystemExit(f"Missing required env var: {name}")
+    return value
+
+
+MODEL = require_env("LLM_MODEL_ID")
 client = OpenAI(
-    base_url=os.getenv("LLM_BASE_URL", "https://integrate.api.nvidia.com/v1"),
-    api_key=os.getenv("LLM_API_KEY", os.getenv("NVIDIA_API_KEY", "unused")),
+    base_url=require_env("LLM_BASE_URL"),
+    api_key=require_env("LLM_API_KEY"),
 )
 
 note = "Customer says checkout is slow, payment fails on mobile, and error messages are unclear."
 
-step1 = client.chat.completions.create(
-    model=MODEL,
-    messages=[
-        {
-            "role": "user",
-            "content": f"Extract the 3 distinct issues from this note as bullets: {note}",
-        }
-    ],
+def run_step(user_prompt: str, temperature: float, max_tokens: int) -> str:
+    try:
+        return client.chat.completions.create(
+            model=MODEL,
+            messages=[{"role": "user", "content": user_prompt}],
+            temperature=temperature,
+            max_tokens=max_tokens,
+        ).choices[0].message.content or ""
+    except Exception as exc:
+        return f"[request failed: {exc}]"
+
+
+step1 = run_step(
+    f"Extract the 3 distinct issues from this note as bullets: {note}",
     temperature=0,
     max_tokens=120,
-).choices[0].message.content
-
-step2 = client.chat.completions.create(
-    model=MODEL,
-    messages=[
-        {
-            "role": "user",
-            "content": f"Prioritize these issues as High/Medium/Low with one line reason each:\n{step1}",
-        }
-    ],
+)
+step2 = run_step(
+    f"Prioritize these issues as High/Medium/Low with one line reason each:\n{step1}",
     temperature=0,
     max_tokens=140,
-).choices[0].message.content
-
-step3 = client.chat.completions.create(
-    model=MODEL,
-    messages=[
-        {
-            "role": "user",
-            "content": f"Write a concise action plan from this prioritization:\n{step2}",
-        }
-    ],
+)
+step3 = run_step(
+    f"Write a concise action plan from this prioritization:\n{step2}",
     temperature=0.2,
     max_tokens=140,
-).choices[0].message.content
+)
 
 print("Step 1: Extract")
 print(step1)
