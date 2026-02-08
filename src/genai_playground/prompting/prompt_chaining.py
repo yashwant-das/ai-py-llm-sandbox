@@ -15,6 +15,18 @@ def require_env(name: str) -> str:
     return value
 
 
+def extract_display_text(message) -> str:
+    text = (message.content or "").strip()
+    if text:
+        return text
+
+    reasoning = str(getattr(message, "reasoning", "") or "").strip()
+    if reasoning:
+        compact = " ".join(reasoning.split())
+        return f"[reasoning-only] {compact[:200]}..."
+
+    return "[empty response]"
+
 MODEL = require_env("LLM_MODEL_ID")
 client = OpenAI(
     base_url=require_env("LLM_BASE_URL"),
@@ -25,30 +37,47 @@ note = "Customer says checkout is slow, payment fails on mobile, and error messa
 
 def run_step(user_prompt: str, temperature: float, max_tokens: int) -> str:
     try:
-        return client.chat.completions.create(
+        message = client.chat.completions.create(
             model=MODEL,
-            messages=[{"role": "user", "content": user_prompt}],
+            messages=[
+                {"role": "system", "content": "Return only the final answer. Do not include reasoning text."},
+                {"role": "user", "content": user_prompt},
+            ],
             temperature=temperature,
             max_tokens=max_tokens,
-        ).choices[0].message.content or ""
+        ).choices[0].message
     except Exception as exc:
         return f"[request failed: {exc}]"
 
+    return extract_display_text(message)
+
 
 step1 = run_step(
-    f"Extract the 3 distinct issues from this note as bullets: {note}",
+    (
+        "Extract exactly 3 distinct issues from this note. "
+        "Return exactly 3 bullet points and nothing else.\n"
+        f"Note: {note}"
+    ),
     temperature=0,
-    max_tokens=120,
+    max_tokens=220,
 )
 step2 = run_step(
-    f"Prioritize these issues as High/Medium/Low with one line reason each:\n{step1}",
+    (
+        "Prioritize these issues as High/Medium/Low with one-line reason each. "
+        "Return exactly 3 bullet points and nothing else.\n"
+        f"Issues:\n{step1}"
+    ),
     temperature=0,
-    max_tokens=140,
+    max_tokens=260,
 )
 step3 = run_step(
-    f"Write a concise action plan from this prioritization:\n{step2}",
+    (
+        "Write a concise action plan from this prioritization. "
+        "Return exactly 3 bullet points and nothing else.\n"
+        f"Prioritization:\n{step2}"
+    ),
     temperature=0.2,
-    max_tokens=140,
+    max_tokens=280,
 )
 
 print("Step 1: Extract")

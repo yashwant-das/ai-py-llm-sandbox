@@ -59,7 +59,10 @@ def main() -> int:
         }
     ]
 
-    messages = [{"role": "user", "content": "What is 19 * 7?"}]
+    messages = [
+        {"role": "system", "content": "Return only the final answer. Do not include reasoning text."},
+        {"role": "user", "content": "What is 19 * 7?"},
+    ]
 
     try:
         first = client.chat.completions.create(

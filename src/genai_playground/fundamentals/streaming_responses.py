@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import os
 import time
+
 from dotenv import load_dotenv
 from openai import OpenAI
 
 load_dotenv()
+
 
 def require_env(name: str) -> str:
     value = os.getenv(name)
@@ -29,7 +31,10 @@ print("-" * 50)
 start = time.time()
 resp = client.chat.completions.create(
     model=MODEL,
-    messages=[{"role": "user", "content": prompt}],
+    messages=[
+        {"role": "system", "content": "Return only the final answer. Do not include reasoning text."},
+        {"role": "user", "content": prompt},
+    ],
     stream=False,
 )
 print(resp.choices[0].message.content)
@@ -41,7 +46,10 @@ start = time.time()
 first_token = None
 stream = client.chat.completions.create(
     model=MODEL,
-    messages=[{"role": "user", "content": prompt}],
+    messages=[
+        {"role": "system", "content": "Return only the final answer. Do not include reasoning text."},
+        {"role": "user", "content": prompt},
+    ],
     stream=True,
 )
 for chunk in stream:

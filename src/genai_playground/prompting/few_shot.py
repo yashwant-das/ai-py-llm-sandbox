@@ -15,6 +15,18 @@ def require_env(name: str) -> str:
     return value
 
 
+def extract_display_text(message) -> str:
+    text = (message.content or "").strip()
+    if text:
+        return text
+
+    reasoning = str(getattr(message, "reasoning", "") or "").strip()
+    if reasoning:
+        compact = " ".join(reasoning.split())
+        return f"[reasoning-only] {compact[:200]}..."
+
+    return "[empty response]"
+
 MODEL = require_env("LLM_MODEL_ID")
 client = OpenAI(
     base_url=require_env("LLM_BASE_URL"),
@@ -35,10 +47,13 @@ Output:"""
 try:
     resp = client.chat.completions.create(
         model=MODEL,
-        messages=[{"role": "user", "content": prompt}],
+        messages=[
+            {"role": "system", "content": "Return only the final answer. Do not include reasoning text."},
+            {"role": "user", "content": prompt},
+        ],
         temperature=0,
-        max_tokens=80,
+        max_tokens=200,
     )
-    print(resp.choices[0].message.content)
+    print(extract_display_text(resp.choices[0].message))
 except Exception as exc:
     print(f"Few-shot demo request failed: {exc}")

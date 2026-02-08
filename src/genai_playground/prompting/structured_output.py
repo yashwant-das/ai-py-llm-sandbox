@@ -16,6 +16,18 @@ def require_env(name: str) -> str:
     return value
 
 
+def extract_display_text(message) -> str:
+    text = (message.content or "").strip()
+    if text:
+        return text
+
+    reasoning = str(getattr(message, "reasoning", "") or "").strip()
+    if reasoning:
+        compact = " ".join(reasoning.split())
+        return f"[reasoning-only] {compact[:200]}..."
+
+    return "[empty response]"
+
 MODEL = require_env("LLM_MODEL_ID")
 client = OpenAI(
     base_url=require_env("LLM_BASE_URL"),
@@ -36,15 +48,22 @@ Text: Jordan has 6 years of backend experience and works with Python, SQL, and D
 try:
     resp = client.chat.completions.create(
         model=MODEL,
-        messages=[{"role": "user", "content": prompt}],
+        messages=[
+            {
+                "role": "system",
+                "content": "Return only valid JSON that matches the user's schema. No reasoning text.",
+            },
+            {"role": "user", "content": prompt},
+        ],
         temperature=0,
-        max_tokens=160,
+        max_tokens=260,
     )
 except Exception as exc:
     print(f"Structured output demo request failed: {exc}")
     raise SystemExit(0)
 
-raw = (resp.choices[0].message.content or "").replace("```json", "").replace("```", "").strip()
+message_text = extract_display_text(resp.choices[0].message)
+raw = message_text.replace("```json", "").replace("```", "").strip()
 print("Raw output:")
 print(raw)
 

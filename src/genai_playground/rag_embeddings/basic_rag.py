@@ -78,9 +78,12 @@ Question: {question}
     try:
         chat_resp = client.chat.completions.create(
             model=CHAT_MODEL,
-            messages=[{"role": "user", "content": prompt}],
+            messages=[
+                {"role": "system", "content": "Return only the final answer. Do not include reasoning text."},
+                {"role": "user", "content": prompt},
+            ],
             temperature=0,
-            max_tokens=140,
+            max_tokens=260,
         )
     except Exception as exc:
         print(f"Chat completion failed: {exc}")

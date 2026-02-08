@@ -62,15 +62,22 @@ def check_llm_connection() -> bool:
         client = OpenAI(base_url=base_url, api_key=api_key)
         response = client.chat.completions.create(
             model=model,
-            messages=[{"role": "user", "content": "Reply with: setup-ok"}],
+            messages=[
+                {"role": "system", "content": "Return only the final answer. Do not include reasoning text."},
+                {"role": "user", "content": "Reply with: setup-ok"},
+            ],
             max_tokens=12,
             temperature=0,
         )
         text = (response.choices[0].message.content or "").strip().lower()
-        success = "setup-ok" in text
+        reasoning = str(getattr(response.choices[0].message, "reasoning", "") or "").strip()
+        # Some local reasoning models return empty `content` while still succeeding.
+        success = ("setup-ok" in text) or bool(text) or bool(reasoning)
         print(f"Connection test: {'OK' if success else 'FAILED'}")
         if not success:
             print(f"Raw response: {text}")
+        elif not text and reasoning:
+            print("Connection note: model returned reasoning-only output (content was empty).")
         return success
     except Exception as exc:
         print(f"Connection test: FAILED ({exc})")

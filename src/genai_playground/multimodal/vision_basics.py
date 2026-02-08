@@ -49,6 +49,10 @@ resp = client.chat.completions.create(
     model=MODEL,
     messages=[
         {
+            "role": "system",
+            "content": "Return only the final answer in concise bullet points. Do not include reasoning text.",
+        },
+        {
             "role": "user",
             "content": [
                 {"type": "text", "text": "Describe this image in 4 concise bullets."},

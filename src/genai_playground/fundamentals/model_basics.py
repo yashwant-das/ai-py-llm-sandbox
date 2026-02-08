@@ -28,7 +28,10 @@ client = OpenAI(
 )
 
 messages = [
-    {"role": "system", "content": "You are a concise technical tutor."},
+    {
+        "role": "system",
+        "content": "You are a concise technical tutor. Return only the final answer. Do not include reasoning text.",
+    },
     {
         "role": "user",
         "content": "Explain in 3 bullets what tokens are in LLMs.",

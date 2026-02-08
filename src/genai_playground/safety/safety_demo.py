@@ -37,7 +37,7 @@ def safe_ask(user_prompt: str) -> str:
                     "role": "system",
                     "content": (
                         "You are a helpful assistant. Refuse illegal, violent, or unsafe requests "
-                        "and offer safer alternatives."
+                        "and offer safer alternatives. Return only the final answer and do not include reasoning text."
                     ),
                 },
                 {"role": "user", "content": user_prompt},
