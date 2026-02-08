@@ -1,151 +1,98 @@
-"""
-Setup Verification Script
-=========================
-Test connectivity to NVIDIA API and verify environment configuration.
+"""Setup verification for the learning repo.
 
-Run this after setup to ensure everything is working:
-    uv run python 01_setup/verify_setup.py
-
-Checks:
-- Python version (3.10+)
-- Required packages installed
-- NVIDIA API Key configured
-- Connection to NVIDIA API
+Run:
+    uv run python src/genai_playground/setup/verify_setup.py
 """
 
+from __future__ import annotations
+
+import os
 import sys
+from importlib import import_module
 
 
-
-
-def check_python_version():
-    """Verify Python 3.10+ is installed."""
-    print("Checking Python version...")
+def check_python() -> bool:
     version = sys.version_info
-    if version.major == 3 and version.minor >= 10:
-        print(f"  ✓ Python {version.major}.{version.minor}.{version.micro}")
-        return True
-    else:
-        print(f"  ✗ Python {version.major}.{version.minor} (requires 3.10+)")
-        return False
+    ok = version.major == 3 and version.minor >= 10
+    print(f"Python: {version.major}.{version.minor}.{version.micro} ({'OK' if ok else 'Needs 3.10+'})")
+    return ok
 
 
-def check_packages():
-    """Verify required packages are installed."""
-    print("\nChecking required packages...")
-    required = [
-        "openai",
-        "dotenv",
-    ]
-
-    all_ok = True
-    for package in required:
+def check_packages() -> bool:
+    required = ["openai", "dotenv", "tiktoken", "requests"]
+    ok = True
+    for name in required:
         try:
-            # Map package names to import names
-            import_name = package
-            if package == "dotenv":
-                import_name = "dotenv"
-
-            __import__(import_name)
-            print(f"  ✓ {package}")
+            import_module(name)
+            print(f"Package: {name} (OK)")
         except ImportError:
-            print(f"  ✗ {package} (not installed)")
-            all_ok = False
+            print(f"Package: {name} (MISSING)")
+            ok = False
+    return ok
 
-    return all_ok
 
-
-def check_llm_connection():
-    """Verify connection to the configured LLM provider."""
-    print("\nChecking LLM Provider Connection...")
-    
+def check_llm_connection() -> bool:
     try:
-        import os
-        from openai import OpenAI
         from dotenv import load_dotenv
-        
+        from openai import OpenAI
+
         load_dotenv()
-        
-        # Get configuration with defaults
+
         base_url = os.getenv("LLM_BASE_URL", "https://integrate.api.nvidia.com/v1")
+        model = os.getenv("LLM_MODEL_ID", "meta/llama-3.1-8b-instruct")
         api_key = os.getenv("LLM_API_KEY", os.getenv("NVIDIA_API_KEY"))
-        model = os.getenv("LLM_MODEL_ID", "meta/llama-3.1-405b-instruct")
 
-        print(f"  Base URL: {base_url}")
-        print(f"  Model:    {model}")
+        if "localhost" in base_url and api_key is None:
+            api_key = "ollama"
 
-        if not api_key and "nvidia" in base_url:
-             print("  ⚠️  Warning: No API key found (required for NVIDIA).")
+        print(f"Provider URL: {base_url}")
+        print(f"Model: {model}")
 
-        # Try to initialize Client
-        client = OpenAI(
-            base_url=base_url,
-            api_key=api_key or "unused"
-        )
-
-        # Simple test prompt
-        response = client.chat.completions.create(
-            model=model,
-            messages=[
-                {
-                    "role": "user",
-                    "content": "Say 'Connection verified!'",
-                }
-            ],
-            max_tokens=10,
-        )
-
-        content = response.choices[0].message.content
-
-        if content:
-            print("  ✓ Provider is responding")
-            print(f"  Response: {content.strip()}")
-            return True
-        else:
-            print("  ✗ Empty response from API")
+        if not api_key and "nvidia" in base_url.lower():
+            print("LLM API key missing for NVIDIA provider.")
             return False
 
-    except Exception as e:
-        print(f"  ✗ Connection failed: {e}")
-        print("\n  Troubleshooting:")
-        print("  1. Check .env configuration (LLM_BASE_URL, LLM_API_KEY)")
-        print("  2. If using Ollama/Local, ensure usage server is running")
+        client = OpenAI(base_url=base_url, api_key=api_key or "unused")
+        response = client.chat.completions.create(
+            model=model,
+            messages=[{"role": "user", "content": "Reply with: setup-ok"}],
+            max_tokens=12,
+            temperature=0,
+        )
+        text = (response.choices[0].message.content or "").strip().lower()
+        success = "setup-ok" in text
+        print(f"Connection test: {'OK' if success else 'FAILED'}")
+        if not success:
+            print(f"Raw response: {text}")
+        return success
+    except Exception as exc:
+        print(f"Connection test: FAILED ({exc})")
         return False
 
 
-def main():
-    """Run all verification checks."""
+def main() -> int:
     print("=" * 60)
-    print("GenAI Systems Playground - Setup Verification")
-    print("=" * 60)
-
-    results = []
-
-    results.append(("Python Version", check_python_version()))
-    results.append(("Required Packages", check_packages()))
-    results.append(("LLM Provider Connection", check_llm_connection()))
-
-    print("\n" + "=" * 60)
-    print("Verification Summary")
+    print("GenAI Playground Setup Verification")
     print("=" * 60)
 
-    for name, passed in results:
-        status = "✓ PASS" if passed else "✗ FAIL"
-        print(f"  {status}: {name}")
+    checks = [
+        ("Python", check_python()),
+        ("Packages", check_packages()),
+        ("LLM Connection", check_llm_connection()),
+    ]
 
-    all_passed = all(r[1] for r in results)
+    print("\nSummary")
+    print("-" * 60)
+    for name, passed in checks:
+        print(f"{name:<20} {'PASS' if passed else 'FAIL'}")
 
-    if all_passed:
-        print("\n🎉 Setup verified! You're ready to start.")
-        print("\nNext: Try running an example:")
-        print(
-            "  uv run python src/genai_playground/04_prompting/zero_shot.py"
-        )
+    all_ok = all(passed for _, passed in checks)
+    if all_ok:
+        print("\nNext:")
+        print("uv run python src/genai_playground/fundamentals/model_basics.py")
         return 0
-    else:
-        print("\n⚠️  Some checks failed. Please fix the issues above.")
-        return 1
+    return 1
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main())

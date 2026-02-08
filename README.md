@@ -1,68 +1,107 @@
 # GenAI Systems Playground
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![NVIDIA API](https://img.shields.io/badge/NVIDIA%20API-Powered-green.svg)](https://build.nvidia.com/)
+Practical, low-code tutorials for learning core OpenAI-style model capabilities.
 
-> A practical, hands-on sandbox for learning and experimenting with Generative AI systems — from prompt engineering basics to AI agents and LLMOps.
+This repo is optimized for:
+- Fast learning
+- Interview revision
+- Self-contained scripts
+- Beginner-to-semi-advanced progression
 
-## Quick Start
+## What This Repo Covers
+
+1. LLM fundamentals (first call, tokens, temperature, streaming)
+2. Prompting essentials (zero-shot, few-shot, structured output, chaining)
+3. Tool calling (function calling)
+4. Embeddings and basic RAG
+5. Safety basics
+6. Multimodal basics (vision + optional image generation)
+7. Local inference with Ollama
+
+## Setup
 
 ```bash
-# 1. Clone and setup with UV
 uv sync
 cp .env.example .env
-# Edit .env with your NVIDIA_API_KEY
-
-# 2. Verify setup
+# edit .env for your provider
 uv run python src/genai_playground/setup/verify_setup.py
-
-# 3. Running Examples
-uv run python src/genai_playground/prompting/zero_shot.py
 ```
 
+## Recommended Models By Use Case
 
+| Use Case | OpenAI | NVIDIA | Ollama / Local |
+|---|---|---|---|
+| General chat + prompting | `gpt-4o-mini` | `meta/llama-3.1-8b-instruct` | `llama3.1:8b` |
+| Function calling | `gpt-4o-mini` | `meta/llama-3.1-70b-instruct`* | model-dependent |
+| Vision | `gpt-4o-mini` | `meta/llama-3.2-90b-vision-instruct` | model-dependent |
+| Embeddings | `text-embedding-3-small` | `nvidia/nv-embedqa-e5-v5`* | `nomic-embed-text` |
 
+\* Availability depends on your NVIDIA account/model catalog.
 
+## Learning Path
 
+### 01 Fundamentals
 
-## Running Examples
-
-### Prerequisites
-1.  **NVIDIA API Key**: Free at [build.nvidia.com](https://build.nvidia.com/)
-2.  **UV Installed**: `curl -LsSf https://astral.sh/uv/install.sh | sh`
-
-### Setup
 ```bash
-uv sync
-cp .env.example .env
-# Edit .env and set NVIDIA_API_KEY
-```
-
-### Quick Start Commands
-```bash
-# fundamentals
+uv run python src/genai_playground/fundamentals/model_basics.py
 uv run python src/genai_playground/fundamentals/token_counting.py
-
-# prompting
-uv run python src/genai_playground/prompting/zero_shot.py
-
-# agents
-uv run python src/genai_playground/agents/react_pattern.py
-
-# multimodal
-uv run python src/genai_playground/multimodal/nvidia_vision.py
+uv run python src/genai_playground/fundamentals/temperature_sampling.py
+uv run python src/genai_playground/fundamentals/streaming_responses.py
 ```
 
-## Philosophy & Structure
+### 02 Prompting
 
-This repository is designed specifically for **rapid learning** and **interview reference**. 
+```bash
+uv run python src/genai_playground/prompting/zero_shot.py
+uv run python src/genai_playground/prompting/few_shot.py
+uv run python src/genai_playground/prompting/structured_output.py
+uv run python src/genai_playground/prompting/prompt_chaining.py
+```
 
-*   **Self-Contained Scripts**: Each file is a complete, runnable lesson. There are no hidden `utils.py` files or complex class hierarchies to untangle. You can read a single file from top to bottom and understand the entire concept.
-*   **Flat Directory Structure**: We avoid deep nesting to keep navigation simple. Every topic is one click away.
-*   **Minimal Dependencies**: We stick to the essentials (`openai`, `dotenv`, `requests`) to show how things work under the hood, rather than hiding logic behind heavy frameworks.
-*   **Platform Agnostic**: Whether you use NVIDIA, Ollama, or OpenAI, the code works the same way.
-*   **OpenAI API Standard**: We focus on the industry-standard OpenAI-style API, which is supported by nearly every major LLM provider and inference engine today. Mastering this specific interface is high-leverage knowledge.
+### 03 Tools and Agents (Minimal)
+
+```bash
+uv run python src/genai_playground/tools_agents/function_calling.py
+```
+
+### 04 Embeddings and RAG
+
+```bash
+uv run python src/genai_playground/rag_embeddings/embeddings_basics.py
+uv run python src/genai_playground/rag_embeddings/basic_rag.py
+```
+
+### 05 Safety
+
+```bash
+uv run python src/genai_playground/safety/safety_demo.py
+```
+
+### 06 Multimodal
+
+```bash
+# requires an image path in VISION_IMAGE_PATH (or data/sample.jpg)
+uv run python src/genai_playground/multimodal/vision_basics.py
+
+# NVIDIA-specific image generation
+uv run python src/genai_playground/multimodal/nvidia_image_gen.py
+```
+
+### 07 Local Inference
+
+```bash
+ollama serve
+ollama pull llama3.1:8b
+uv run python src/genai_playground/local_inference/ollama_demo.py
+```
+
+## Design Rules Used In This Repo
+
+- Every script is runnable on its own.
+- No framework-heavy abstractions.
+- Short examples over feature-complete systems.
+- Interview-ready patterns first, production concerns later.
 
 ## License
-MIT License — See [LICENSE](LICENSE) for details.
+
+MIT. See `LICENSE`.

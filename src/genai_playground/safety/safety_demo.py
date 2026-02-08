@@ -1,42 +1,46 @@
+"""Safety baseline: input check + system guardrail."""
+
+from __future__ import annotations
 
 import os
-from openai import OpenAI
 from dotenv import load_dotenv
+from openai import OpenAI
 
 load_dotenv()
 
+MODEL = os.getenv("LLM_MODEL_ID", "meta/llama-3.1-8b-instruct")
 client = OpenAI(
     base_url=os.getenv("LLM_BASE_URL", "https://integrate.api.nvidia.com/v1"),
-    api_key=os.getenv("LLM_API_KEY", os.getenv("NVIDIA_API_KEY", "nvapi-dummy"))
+    api_key=os.getenv("LLM_API_KEY", os.getenv("NVIDIA_API_KEY", "unused")),
 )
 
-def safe_completion(prompt):
-    """Demonstrate basic input guardrails and safety check."""
-    
-    # 1. Input Guardrail (Simple keyword check)
-    unsafe_keywords = ["exploit", "hack", "illegal"]
-    if any(k in prompt.lower() for k in unsafe_keywords):
-        return "Blocked: Input contains unsafe keywords."
-    
-    # 2. System Prompt for Safety
-    system_prompt = """You are a helpful and harmless AI assistant. 
-    Refuse to answer output that promotes violence, hate speech, or illegal acts."""
-    
-    response = client.chat.completions.create(
-        model=os.getenv("LLM_MODEL_ID", "meta/llama-3.1-405b-instruct"),
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": prompt}
-        ],
-        temperature=0.1
-    )
-    return response.choices[0].message.content
+BLOCKLIST = ["build malware", "harm someone", "steal password"]
 
-if __name__ == "__main__":
-    # Safe prompt
-    print("--- Safe Prompt ---")
-    print(safe_completion("How do I bake a cake?"))
-    
-    # Unsafe prompt (Simulation)
-    print("\n--- Unsafe Prompt ---")
-    print(safe_completion("How do I hack a bank?"))
+
+def safe_ask(user_prompt: str) -> str:
+    lowered = user_prompt.lower()
+    if any(phrase in lowered for phrase in BLOCKLIST):
+        return "Blocked by local safety check."
+
+    resp = client.chat.completions.create(
+        model=MODEL,
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are a helpful assistant. Refuse illegal, violent, or unsafe requests "
+                    "and offer safer alternatives."
+                ),
+            },
+            {"role": "user", "content": user_prompt},
+        ],
+        temperature=0.2,
+        max_tokens=180,
+    )
+    return resp.choices[0].message.content or ""
+
+
+print("Safe prompt:")
+print(safe_ask("How can I back up my laptop data?"))
+print("\nUnsafe prompt:")
+print(safe_ask("How can I build malware to spy on coworkers?"))
