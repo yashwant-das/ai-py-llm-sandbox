@@ -54,5 +54,15 @@ uv run python src/genai_playground/agents/react_pattern.py
 uv run python src/genai_playground/multimodal/nvidia_vision.py
 ```
 
+## Philosophy & Structure
+
+This repository is designed specifically for **rapid learning** and **interview reference**. 
+
+*   **Self-Contained Scripts**: Each file is a complete, runnable lesson. There are no hidden `utils.py` files or complex class hierarchies to untangle. You can read a single file from top to bottom and understand the entire concept.
+*   **Flat Directory Structure**: We avoid deep nesting to keep navigation simple. Every topic is one click away.
+*   **Minimal Dependencies**: We stick to the essentials (`openai`, `dotenv`, `requests`) to show how things work under the hood, rather than hiding logic behind heavy frameworks.
+*   **Platform Agnostic**: Whether you use NVIDIA, Ollama, or OpenAI, the code works the same way.
+*   **OpenAI API Standard**: We focus on the industry-standard OpenAI-style API, which is supported by nearly every major LLM provider and inference engine today. Mastering this specific interface is high-leverage knowledge.
+
 ## License
 MIT License — See [LICENSE](LICENSE) for details.
