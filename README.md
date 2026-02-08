@@ -17,8 +17,8 @@ cp .env.example .env
 # 2. Verify setup
 uv run python 01_setup/verify_setup.py
 
-# 3. Run your first example
-uv run python 05_prompt_engineering_fundamentals/code/01_zero_shot.py
+# 3. Running Examples
+uv run python 04_prompting/01_zero_shot.py
 ```
 
 **For topic-specific dependencies:**
@@ -28,9 +28,9 @@ uv run python 05_prompt_engineering_fundamentals/code/01_zero_shot.py
 uv sync --all-extras
 
 # Or install specific topic dependencies
-uv sync --extra vector      # For Topic 3, 9, 16 (Vector Search)
-uv sync --extra image       # For Topic 10 (Image Generation)
-uv sync --extra huggingface # For Topic 17 (Hugging Face)
+uv sync --extra vector      # For RAG & Embeddings
+uv sync --extra image       # For Multimodal
+uv sync --extra huggingface # For Local Inference
 ```
 
 See [`UV_SETUP.md`](UV_SETUP.md) for detailed UV instructions.
@@ -74,16 +74,16 @@ cp .env.example .env
 ### Quick Start Commands
 ```bash
 # fundamentals
-uv run python 02_fundamentals/experiments/01_token_counting.py
+uv run python 02_fundamentals/01_token_counting.py
 
 # prompting
-uv run python 04_prompting/code/01_zero_shot.py
+uv run python 04_prompting/01_zero_shot.py
 
 # agents
-uv run python 06_tools_agents/agents/fundamentals/01_react_pattern.py
+uv run python 06_tools_agents/01_react_pattern.py
 
 # multimodal
-uv run python 07_multimodal/api_integrations/nvidia_vision.py
+uv run python 07_multimodal/nvidia_vision.py
 ```
 
 ## License
