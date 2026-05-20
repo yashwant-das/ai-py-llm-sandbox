@@ -1,4 +1,4 @@
-# GenAI Systems Playground
+# GenAI LLM Sandbox
 
 Practical, low-code tutorials for learning core OpenAI-style model capabilities.
 
