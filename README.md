@@ -102,4 +102,4 @@ See each module directory for all available scripts.
 
 ## License
 
-MIT. See `LICENSE`.
+MIT. See [LICENSE](./LICENSE).
