@@ -1,24 +1,16 @@
 # GenAI LLM Sandbox
 
-Practical, low-code tutorials for learning core OpenAI-style model capabilities.
+A collection of self-contained, runnable Python scripts for learning OpenAI-compatible LLM APIs — from fundamentals through multimodal and local inference.
 
-This repo is optimized for:
-- Fast learning
-- Interview revision
-- Self-contained scripts
-- Beginner-to-semi-advanced progression
+Each script is independent, uses the `openai` Python SDK directly, and demonstrates one core concept with minimal code.
 
-## What This Repo Covers
+## Prerequisites
 
-1. LLM fundamentals (first call, tokens, temperature, streaming)
-2. Prompting essentials (zero-shot, few-shot, structured output, chaining)
-3. Tool calling (function calling)
-4. Embeddings and basic RAG
-5. Safety basics
-6. Multimodal basics (vision + optional image generation)
-7. Local inference with Ollama
+- Python >= 3.10
+- `uv` (package manager)
+- An OpenAI-compatible API endpoint (OpenAI, NVIDIA, Ollama, LM Studio, etc.)
 
-## Setup
+## Quick Start
 
 ```bash
 uv sync
@@ -26,6 +18,68 @@ cp .env.example .env
 # edit .env for your provider
 uv run python src/genai_playground/setup/verify_setup.py
 ```
+
+## Modules
+
+### 01 Fundamentals
+
+| Script | Concept |
+|--------|---------|
+| `model_basics.py` | First chat completion, message roles, token usage |
+| `token_counting.py` | Tokenization with tiktoken, context window budgeting |
+| `temperature_sampling.py` | Temperature parameter, output variability |
+| `streaming_responses.py` | Streaming vs. non-streaming, time-to-first-token |
+
+### 02 Prompting
+
+| Script | Concept |
+|--------|---------|
+| `zero_shot.py` | Zero-shot classification |
+| `few_shot.py` | In-context learning via examples |
+| `structured_output.py` | JSON schema prompting |
+| `prompt_chaining.py` | Multi-step task decomposition |
+
+### 03 Tools & Agents
+
+| Script | Concept |
+|--------|---------|
+| `function_calling.py` | Tool definition, function execution loop |
+
+### 04 Embeddings & RAG
+
+| Script | Concept |
+|--------|---------|
+| `embeddings_basics.py` | Vector embeddings, cosine similarity |
+| `basic_rag.py` | Retrieval-Augmented Generation pipeline |
+
+### 05 Safety
+
+| Script | Concept |
+|--------|---------|
+| `safety_demo.py` | Input blocklist, system guardrails |
+
+### 06 Multimodal
+
+| Script | Concept |
+|--------|---------|
+| `vision_basics.py` | Image understanding via base64 data URIs |
+| `image_generation.py` | Text-to-image generation |
+
+### 07 Local Inference
+
+| Script | Concept |
+|--------|---------|
+| `ollama_demo.py` | Connecting to a local Ollama instance |
+
+## Running Scripts
+
+```bash
+uv run python src/genai_playground/fundamentals/model_basics.py
+uv run python src/genai_playground/prompting/zero_shot.py
+uv run python src/genai_playground/tools_agents/function_calling.py
+```
+
+See each module directory for all available scripts.
 
 ## Recommended Models By Use Case
 
@@ -39,69 +93,12 @@ uv run python src/genai_playground/setup/verify_setup.py
 
 \* Availability depends on your NVIDIA account/model catalog.
 
-## Learning Path
+## Project Design
 
-### 01 Fundamentals
-
-```bash
-uv run python src/genai_playground/fundamentals/model_basics.py
-uv run python src/genai_playground/fundamentals/token_counting.py
-uv run python src/genai_playground/fundamentals/temperature_sampling.py
-uv run python src/genai_playground/fundamentals/streaming_responses.py
-```
-
-### 02 Prompting
-
-```bash
-uv run python src/genai_playground/prompting/zero_shot.py
-uv run python src/genai_playground/prompting/few_shot.py
-uv run python src/genai_playground/prompting/structured_output.py
-uv run python src/genai_playground/prompting/prompt_chaining.py
-```
-
-### 03 Tools and Agents (Minimal)
-
-```bash
-uv run python src/genai_playground/tools_agents/function_calling.py
-```
-
-### 04 Embeddings and RAG
-
-```bash
-uv run python src/genai_playground/rag_embeddings/embeddings_basics.py
-uv run python src/genai_playground/rag_embeddings/basic_rag.py
-```
-
-### 05 Safety
-
-```bash
-uv run python src/genai_playground/safety/safety_demo.py
-```
-
-### 06 Multimodal
-
-```bash
-# requires VISION_IMAGE_PATH in .env
-uv run python src/genai_playground/multimodal/vision_basics.py
-
-# OpenAI-compatible image generation (provider-dependent support)
-uv run python src/genai_playground/multimodal/image_generation.py
-```
-
-### 07 Local Inference
-
-```bash
-ollama serve
-ollama pull llama3.1:8b
-uv run python src/genai_playground/local_inference/ollama_demo.py
-```
-
-## Design Rules Used In This Repo
-
-- Every script is runnable on its own.
-- No framework-heavy abstractions.
-- Short examples over feature-complete systems.
-- Interview-ready patterns first, production concerns later.
+- **Self-contained:** Every script runs independently with no shared state.
+- **Minimal dependencies:** Only `openai`, `python-dotenv`, `tiktoken`, `requests`.
+- **No framework abstractions:** Scripts use the SDK directly — no wrappers, no orchestration layer.
+- **Provider-agnostic:** All scripts read `LLM_BASE_URL` and `LLM_API_KEY` from `.env`.
 
 ## License
 
