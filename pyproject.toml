@@ -1,5 +1,5 @@
 [project]
-name = "genai-llm-sandbox"
+name = "ai-py-llm-sandbox"
 version = "0.1.0"
 description = "A practical, hands-on sandbox for learning and experimenting with Generative AI systems"
 readme = "README.md"
