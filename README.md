@@ -1,104 +1,76 @@
 # GenAI LLM Sandbox
 
-A collection of self-contained, runnable Python scripts for learning OpenAI-compatible LLM APIs — from fundamentals through multimodal and local inference.
+Self-contained Python demos for NVIDIA's hosted AI APIs, from chat and prompting to retrieval, vision, and image generation. Each script calls NVIDIA endpoints directly using Python.
 
-Each script is independent, uses the `openai` Python SDK directly, and demonstrates one core concept with minimal code.
+## Quick start
 
-## Prerequisites
-
-- Python >= 3.10
-- `uv` (package manager)
-- An OpenAI-compatible API endpoint (OpenAI, NVIDIA, Ollama, LM Studio, etc.)
-
-## Quick Start
+You need Python 3.10+, uv, and an NVIDIA API key with access to the selected models.
 
 ```bash
 uv sync
 cp .env.example .env
-# edit .env for your provider
+# Set LLM_API_KEY in .env.
 uv run python src/genai_playground/setup/verify_setup.py
 ```
 
-## Modules
+## Models configured in `.env`
 
-### 01 Fundamentals
+`.env` and `.env.example` have a dedicated models section. The current demo configuration uses these four models, all accessed through NVIDIA-hosted services:
 
-| Script | Concept |
-|--------|---------|
-| `model_basics.py` | First chat completion, message roles, token usage |
-| `token_counting.py` | Tokenization with tiktoken, context window budgeting |
-| `temperature_sampling.py` | Temperature parameter, output variability |
-| `streaming_responses.py` | Streaming vs. non-streaming, time-to-first-token |
+| Environment variable | Model ID | Used for |
+|---|---|---|
+| `LLM_MODEL_ID` | `nvidia/nemotron-3.5-lightning-30b-a3b` | Setup verification, chat, streaming, temperature sampling, prompting, tool calling, safety, and RAG answers |
+| `LLM_VISION_MODEL` | `meta/llama-3.2-11b-vision-instruct` | Image understanding in `vision_basics.py` |
+| `LLM_EMBEDDING_MODEL` | `nvidia/nemotron-3-embed-1b` | Document and query vectors in `embeddings_basics.py` and `basic_rag.py` |
+| `LLM_IMAGE_MODEL` | `black-forest-labs/flux.1-dev` | Image creation in `image_generation.py` |
 
-### 02 Prompting
+The model IDs identify their publishers; NVIDIA hosts every model used by these demos.
 
-| Script | Concept |
-|--------|---------|
-| `zero_shot.py` | Zero-shot classification |
-| `few_shot.py` | In-context learning via examples |
-| `structured_output.py` | JSON schema prompting |
-| `prompt_chaining.py` | Multi-step task decomposition |
+| Environment variable | Value | Purpose |
+|---|---|---|
+| `LLM_BASE_URL` | `https://integrate.api.nvidia.com/v1` | NVIDIA chat, vision, and embedding API |
+| `LLM_IMAGE_BASE_URL` | `https://ai.api.nvidia.com/v1/genai` | NVIDIA Visual GenAI image API |
+| `LLM_API_KEY` | Your NVIDIA API key | Authentication for both endpoints |
+| `VISION_IMAGE_PATH` | `data/sample.png` | Input file for the vision demo |
 
-### 03 Tools & Agents
+Keep the real API key in `.env`, which Git ignores. `.env.example` contains a placeholder. Model access and availability depend on NVIDIA and your account.
 
-| Script | Concept |
-|--------|---------|
-| `function_calling.py` | Tool definition, function execution loop |
+Chat demos disable thinking with `chat_template_kwargs.enable_thinking=false`, so their short token budgets produce final answers. Vision requests omit that setting. Embedding demos send documents as `passage` and questions as `query`. The image demo decodes NVIDIA's image artifacts and saves a PNG or JPEG under `data/generated/`.
 
-### 04 Embeddings & RAG
+## Demos
 
-| Script | Concept |
-|--------|---------|
-| `embeddings_basics.py` | Vector embeddings, cosine similarity |
-| `basic_rag.py` | Retrieval-Augmented Generation pipeline |
+| Area | Scripts |
+|---|---|
+| Setup | `setup/verify_setup.py` |
+| Fundamentals | `fundamentals/model_basics.py`, `fundamentals/token_counting.py`, `fundamentals/temperature_sampling.py`, `fundamentals/streaming_responses.py` |
+| Prompting | `prompting/zero_shot.py`, `prompting/few_shot.py`, `prompting/structured_output.py`, `prompting/prompt_chaining.py` |
+| Tools | `tools_agents/function_calling.py` |
+| Retrieval | `rag_embeddings/embeddings_basics.py`, `rag_embeddings/basic_rag.py` |
+| Safety | `safety/safety_demo.py` |
+| Multimodal | `multimodal/vision_basics.py`, `multimodal/image_generation.py` |
 
-### 05 Safety
-
-| Script | Concept |
-|--------|---------|
-| `safety_demo.py` | Input blocklist, system guardrails |
-
-### 06 Multimodal
-
-| Script | Concept |
-|--------|---------|
-| `vision_basics.py` | Image understanding via base64 data URIs |
-| `image_generation.py` | Text-to-image generation |
-
-### 07 Local Inference
-
-| Script | Concept |
-|--------|---------|
-| `ollama_demo.py` | Connecting to a local Ollama instance |
-
-## Running Scripts
+Paths in the table are under `src/genai_playground/`. For example:
 
 ```bash
-uv run python src/genai_playground/fundamentals/model_basics.py
-uv run python src/genai_playground/prompting/zero_shot.py
-uv run python src/genai_playground/tools_agents/function_calling.py
+uv run python src/genai_playground/rag_embeddings/basic_rag.py
+uv run python src/genai_playground/multimodal/vision_basics.py
+uv run python src/genai_playground/multimodal/image_generation.py
 ```
 
-See each module directory for all available scripts.
+`data/sample.png` is a synthetic red-and-blue image for testing vision. Replace `VISION_IMAGE_PATH` in `.env` to use your own image.
 
-## Recommended Models By Use Case
+Token counting uses tiktoken as an offline tokenizer example. It does not measure the NVIDIA models' tokenization; the chat demos' returned usage fields report actual API token usage.
 
-| Use Case | OpenAI | NVIDIA | Ollama / Local |
-|---|---|---|---|
-| General chat + prompting | `gpt-4o-mini` | `meta/llama-3.1-8b-instruct` | `llama3.1:8b` |
-| Function calling | `gpt-4o-mini` | `meta/llama-3.1-8b-instruct` | model-dependent |
-| Vision | `gpt-4o-mini` | `meta/llama-3.2-11b-vision-instruct` | model-dependent |
-| Embeddings | `text-embedding-3-small` | `nvidia/llama-3.2-nemoretriever-300m-embed-v2` | `nomic-embed-text` |
-| Image generation | `gpt-image-1` | `stabilityai/stable-diffusion-xl`* | model-dependent |
+## Tests
 
-\* Availability depends on your NVIDIA account/model catalog.
+The regression tests check NVIDIA request payloads and error handling without calling external services:
 
-## Project Design
+```bash
+uv run python -m unittest discover -s tests -v
+uv run ruff check src tests
+```
 
-- **Self-contained:** Every script runs independently with no shared state.
-- **Minimal dependencies:** Only `openai`, `python-dotenv`, `tiktoken`, `requests`.
-- **No framework abstractions:** Scripts use the SDK directly — no wrappers, no orchestration layer.
-- **Provider-agnostic:** All scripts read `LLM_BASE_URL` and `LLM_API_KEY` from `.env`.
+Running the demos calls NVIDIA's services using the key in `.env`. Dependencies remain locked in `uv.lock`.
 
 ## License
 

@@ -36,6 +36,7 @@ client = OpenAI(
 prompt = "Classify sentiment as Positive, Neutral, or Negative: 'The onboarding was fast and clear.'"
 
 resp = client.chat.completions.create(
+    extra_body={"chat_template_kwargs": {"enable_thinking": False}},
     model=MODEL,
     messages=[
         {"role": "system", "content": "Return only the final answer. Do not include reasoning text."},

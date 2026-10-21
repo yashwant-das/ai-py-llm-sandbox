@@ -142,9 +142,6 @@ checkpoints/
 
 # Model download caches
 .cache/
-.cache/huggingface/
-.cache/torch/
-.cache/transformers/
 pretrained_models/
 
 # =============================================================================
@@ -176,6 +173,7 @@ generated/
 !assets/**/*.png
 !assets/**/*.jpg
 !docs/**/*.png
+!data/sample.png
 
 # =============================================================================
 # GenAI Specific - Logs & Outputs

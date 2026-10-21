@@ -43,6 +43,7 @@ for temp in [0.0, 0.3, 0.8]:
     for run in range(1, 4):
         try:
             resp = client.chat.completions.create(
+                extra_body={"chat_template_kwargs": {"enable_thinking": False}},
                 model=MODEL,
                 messages=[
                     {

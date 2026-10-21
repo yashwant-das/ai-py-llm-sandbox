@@ -38,6 +38,7 @@ note = "Customer says checkout is slow, payment fails on mobile, and error messa
 def run_step(user_prompt: str, temperature: float, max_tokens: int) -> str:
     try:
         message = client.chat.completions.create(
+            extra_body={"chat_template_kwargs": {"enable_thinking": False}},
             model=MODEL,
             messages=[
                 {"role": "system", "content": "Return only the final answer. Do not include reasoning text."},

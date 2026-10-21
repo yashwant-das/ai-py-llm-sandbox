@@ -1,9 +1,6 @@
 """Embeddings basics: rank documents by vector similarity.
 
-Recommended embedding models:
-- OpenAI: text-embedding-3-small
-- NVIDIA: nvidia/llama-3.2-nemoretriever-300m-embed-v2
-- Ollama: nomic-embed-text
+NVIDIA-hosted model: nvidia/nemotron-3-embed-1b
 """
 
 from __future__ import annotations
@@ -14,6 +11,7 @@ from dotenv import load_dotenv
 from openai import OpenAI
 
 load_dotenv()
+
 
 def require_env(name: str) -> str:
     value = os.getenv(name)
@@ -45,14 +43,19 @@ def main() -> int:
     query = "How can I make database queries faster?"
 
     try:
-        resp = client.embeddings.create(model=MODEL, input=docs + [query])
+        doc_resp = client.embeddings.create(
+            model=MODEL, input=docs, extra_body={"input_type": "passage"}
+        )
+        query_resp = client.embeddings.create(
+            model=MODEL, input=[query], extra_body={"input_type": "query"}
+        )
     except Exception as exc:
         print(f"Embedding endpoint unavailable for model '{MODEL}': {exc}")
         print("Set LLM_EMBEDDING_MODEL in .env to a model your provider supports.")
-        return 0
+        return 1
 
-    vectors = [item.embedding for item in resp.data]
-    doc_vecs, query_vec = vectors[:-1], vectors[-1]
+    doc_vecs = [item.embedding for item in sorted(doc_resp.data, key=lambda x: x.index)]
+    query_vec = query_resp.data[0].embedding
 
     scores = [(doc, cosine(vec, query_vec)) for doc, vec in zip(docs, doc_vecs)]
     for doc, score in sorted(scores, key=lambda x: x[1], reverse=True):

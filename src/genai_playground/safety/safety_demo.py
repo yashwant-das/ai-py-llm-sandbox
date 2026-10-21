@@ -31,6 +31,7 @@ def safe_ask(user_prompt: str) -> str:
 
     try:
         resp = client.chat.completions.create(
+            extra_body={"chat_template_kwargs": {"enable_thinking": False}},
             model=MODEL,
             messages=[
                 {

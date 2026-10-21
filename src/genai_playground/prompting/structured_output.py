@@ -47,6 +47,7 @@ Text: Jordan has 6 years of backend experience and works with Python, SQL, and D
 
 try:
     resp = client.chat.completions.create(
+        extra_body={"chat_template_kwargs": {"enable_thinking": False}},
         model=MODEL,
         messages=[
             {
@@ -60,7 +61,7 @@ try:
     )
 except Exception as exc:
     print(f"Structured output demo request failed: {exc}")
-    raise SystemExit(0)
+    raise SystemExit(1)
 
 message_text = extract_display_text(resp.choices[0].message)
 raw = message_text.replace("```json", "").replace("```", "").strip()
@@ -73,3 +74,4 @@ try:
     print(json.dumps(parsed, indent=2))
 except json.JSONDecodeError as exc:
     print(f"JSON parse failed: {exc}")
+    raise SystemExit(1)

@@ -1,8 +1,6 @@
-"""Vision chat with a local image file.
+"""NVIDIA vision chat with an image file.
 
-Recommended vision models:
-- OpenAI: gpt-4o-mini
-- NVIDIA: meta/llama-3.2-11b-vision-instruct
+NVIDIA-hosted model: meta/llama-3.2-11b-vision-instruct
 """
 
 from __future__ import annotations
@@ -40,7 +38,7 @@ if not image_path.exists():
         f"Image not found: {image_path}. Set VISION_IMAGE_PATH in .env "
         "or place an image at data/sample.jpg."
     )
-    raise SystemExit(0)
+    raise SystemExit(1)
 
 mime = mimetypes.guess_type(str(image_path))[0] or "image/jpeg"
 b64 = base64.b64encode(image_path.read_bytes()).decode("utf-8")

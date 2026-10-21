@@ -1,9 +1,6 @@
 """First chat completion call.
 
-Recommended models:
-- OpenAI: gpt-4o-mini
-- NVIDIA: meta/llama-3.1-8b-instruct
-- Ollama: llama3.1:8b (via local_inference/ollama_demo.py)
+NVIDIA model: nvidia/nemotron-3.5-lightning-30b-a3b
 """
 
 from __future__ import annotations
@@ -39,6 +36,7 @@ messages = [
 ]
 
 response = client.chat.completions.create(
+    extra_body={"chat_template_kwargs": {"enable_thinking": False}},
     model=MODEL,
     messages=messages,
     temperature=0.2,

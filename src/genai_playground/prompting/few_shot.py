@@ -46,6 +46,7 @@ Output:"""
 
 try:
     resp = client.chat.completions.create(
+        extra_body={"chat_template_kwargs": {"enable_thinking": False}},
         model=MODEL,
         messages=[
             {"role": "system", "content": "Return only the final answer. Do not include reasoning text."},

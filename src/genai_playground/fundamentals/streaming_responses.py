@@ -30,6 +30,7 @@ print("Non-streaming")
 print("-" * 50)
 start = time.time()
 resp = client.chat.completions.create(
+    extra_body={"chat_template_kwargs": {"enable_thinking": False}},
     model=MODEL,
     messages=[
         {"role": "system", "content": "Return only the final answer. Do not include reasoning text."},
@@ -45,6 +46,7 @@ print("-" * 50)
 start = time.time()
 first_token = None
 stream = client.chat.completions.create(
+    extra_body={"chat_template_kwargs": {"enable_thinking": False}},
     model=MODEL,
     messages=[
         {"role": "system", "content": "Return only the final answer. Do not include reasoning text."},

@@ -1,10 +1,4 @@
-"""Image generation via OpenAI-compatible Images API.
-
-Required env vars:
-- LLM_BASE_URL
-- LLM_API_KEY
-- LLM_IMAGE_MODEL
-"""
+"""Generate an image using NVIDIA's dedicated Visual GenAI API."""
 
 from __future__ import annotations
 
@@ -14,7 +8,6 @@ from pathlib import Path
 
 import requests
 from dotenv import load_dotenv
-from openai import OpenAI
 
 load_dotenv()
 
@@ -26,50 +19,75 @@ def require_env(name: str) -> str:
     return value
 
 
-BASE_URL = require_env("LLM_BASE_URL")
 API_KEY = require_env("LLM_API_KEY")
 IMAGE_MODEL = require_env("LLM_IMAGE_MODEL")
+IMAGE_BASE_URL = os.getenv(
+    "LLM_IMAGE_BASE_URL", "https://ai.api.nvidia.com/v1/genai"
+).rstrip("/")
 OUTPUT_PATH = Path("data/generated/image_gen.png")
-
-client = OpenAI(base_url=BASE_URL, api_key=API_KEY)
 
 
 def generate_image(prompt: str) -> bytes | None:
-    try:
-        response = client.images.generate(
-            model=IMAGE_MODEL,
-            prompt=prompt,
-            size="1024x1024",
+    payload = {"height": 1024, "width": 1024, "samples": 1, "seed": 1}
+    if IMAGE_MODEL == "stabilityai/stable-diffusion-xl":
+        payload.update(
+            text_prompts=[{"text": prompt, "weight": 1}], steps=30, cfg_scale=5
         )
-    except Exception as exc:
+    elif IMAGE_MODEL == "black-forest-labs/flux.1-schnell":
+        payload.update(prompt=prompt, mode="base", steps=4, cfg_scale=0)
+    elif IMAGE_MODEL == "black-forest-labs/flux.1-dev":
+        payload.update(prompt=prompt, mode="base", steps=20, cfg_scale=5)
+    else:
+        print(f"Unsupported NVIDIA image model: {IMAGE_MODEL}")
+        return None
+
+    try:
+        response = requests.post(
+            f"{IMAGE_BASE_URL}/{IMAGE_MODEL}",
+            headers={
+                "Authorization": f"Bearer {API_KEY}",
+                "Accept": "application/json",
+            },
+            json=payload,
+            timeout=90,
+            allow_redirects=False,
+        )
+        response.raise_for_status()
+        if response.status_code != 200:
+            raise ValueError(
+                f"Image generation has not completed (HTTP {response.status_code})"
+            )
+        artifact = response.json()["artifacts"][0]
+        if artifact.get("finishReason", "SUCCESS") != "SUCCESS":
+            raise ValueError(
+                f"Image generation did not succeed: {artifact['finishReason']}"
+            )
+        image = base64.b64decode(artifact["base64"], validate=True)
+        if not image.startswith((b"\x89PNG\r\n\x1a\n", b"\xff\xd8\xff")):
+            raise ValueError("Provider response is not a PNG or JPEG image")
+        return image
+    except (
+        requests.RequestException,
+        ValueError,
+        KeyError,
+        IndexError,
+        TypeError,
+    ) as exc:
         print(f"Image generation request failed: {exc}")
         return None
 
-    if not response.data:
-        print("No image data returned by provider.")
-        return None
-
-    item = response.data[0]
-
-    if getattr(item, "b64_json", None):
-        return base64.b64decode(item.b64_json)
-
-    if getattr(item, "url", None):
-        try:
-            image_response = requests.get(item.url, timeout=30)
-            image_response.raise_for_status()
-            return image_response.content
-        except requests.RequestException as exc:
-            print(f"Failed to download image URL: {exc}")
-            return None
-
-    print("Provider returned unsupported image format.")
-    return None
-
 
 if __name__ == "__main__":
-    image = generate_image("A clean desk setup for coding, natural light, minimal style")
-    if image:
-        OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-        OUTPUT_PATH.write_bytes(image)
-        print(f"Saved: {OUTPUT_PATH}")
+    image = generate_image(
+        "A clean desk setup for coding, natural light, minimal style"
+    )
+    if image is None:
+        raise SystemExit(1)
+    output = (
+        OUTPUT_PATH.with_suffix(".jpg")
+        if image.startswith(b"\xff\xd8\xff")
+        else OUTPUT_PATH
+    )
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_bytes(image)
+    print(f"Saved: {output}")

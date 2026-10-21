@@ -1,9 +1,6 @@
 """Function calling with one local tool.
 
-Recommended models (tool calling support):
-- OpenAI: gpt-4o-mini
-- NVIDIA: meta/llama-3.1-8b-instruct
-- Ollama: model-dependent support via OpenAI-compatible server
+NVIDIA model: nvidia/nemotron-3.5-lightning-30b-a3b
 """
 
 from __future__ import annotations
@@ -66,6 +63,7 @@ def main() -> int:
 
     try:
         first = client.chat.completions.create(
+            extra_body={"chat_template_kwargs": {"enable_thinking": False}},
             model=MODEL,
             messages=messages,
             tools=tools,
@@ -74,8 +72,8 @@ def main() -> int:
         )
     except Exception as exc:
         print(f"Tool-calling request failed for model '{MODEL}': {exc}")
-        print("Try a tool-capable model (for example gpt-4o-mini).")
-        return 0
+        print("Use the NVIDIA chat model configured in .env.example.")
+        return 1
 
     msg = first.choices[0].message
     messages.append(msg)
@@ -97,7 +95,10 @@ def main() -> int:
                 }
             )
 
-    second = client.chat.completions.create(model=MODEL, messages=messages, temperature=0)
+    second = client.chat.completions.create(
+        extra_body={"chat_template_kwargs": {"enable_thinking": False}},
+        model=MODEL, messages=messages, temperature=0
+    )
     print(second.choices[0].message.content)
     return 0
 

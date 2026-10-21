@@ -9,6 +9,7 @@ from openai import OpenAI
 
 load_dotenv()
 
+
 def require_env(name: str) -> str:
     value = os.getenv(name)
     if not value:
@@ -51,9 +52,16 @@ def main() -> int:
 
     ranked_docs: list[str]
     try:
-        embed_resp = client.embeddings.create(model=EMBED_MODEL, input=knowledge + [question])
-        vectors = [x.embedding for x in embed_resp.data]
-        knowledge_vecs, q_vec = vectors[:-1], vectors[-1]
+        doc_resp = client.embeddings.create(
+            model=EMBED_MODEL, input=knowledge, extra_body={"input_type": "passage"}
+        )
+        query_resp = client.embeddings.create(
+            model=EMBED_MODEL, input=[question], extra_body={"input_type": "query"}
+        )
+        knowledge_vecs = [
+            x.embedding for x in sorted(doc_resp.data, key=lambda x: x.index)
+        ]
+        q_vec = query_resp.data[0].embedding
         ranked = sorted(
             zip(knowledge, knowledge_vecs),
             key=lambda x: cosine(x[1], q_vec),
@@ -77,9 +85,13 @@ Question: {question}
 
     try:
         chat_resp = client.chat.completions.create(
+            extra_body={"chat_template_kwargs": {"enable_thinking": False}},
             model=CHAT_MODEL,
             messages=[
-                {"role": "system", "content": "Return only the final answer. Do not include reasoning text."},
+                {
+                    "role": "system",
+                    "content": "Return only the final answer. Do not include reasoning text.",
+                },
                 {"role": "user", "content": prompt},
             ],
             temperature=0,
@@ -87,7 +99,7 @@ Question: {question}
         )
     except Exception as exc:
         print(f"Chat completion failed: {exc}")
-        return 0
+        return 1
 
     print("Retrieved context:")
     print(context)

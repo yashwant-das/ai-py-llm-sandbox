@@ -1,4 +1,4 @@
-"""Setup verification for the learning repo.
+"""Verify dependencies and the configured NVIDIA chat endpoint.
 
 Run:
     uv run python src/genai_playground/setup/verify_setup.py
@@ -11,10 +11,10 @@ import sys
 from importlib import import_module
 
 NVIDIA_LEARNING_MODELS = {
-    "chat": "meta/llama-3.1-8b-instruct",
+    "chat": "nvidia/nemotron-3.5-lightning-30b-a3b",
     "vision": "meta/llama-3.2-11b-vision-instruct",
-    "embedding": "nvidia/llama-3.2-nemoretriever-300m-embed-v2",
-    "image": "stabilityai/stable-diffusion-xl",
+    "embedding": "nvidia/nemotron-3-embed-1b",
+    "image": "black-forest-labs/flux.1-dev",
 }
 
 
@@ -61,6 +61,7 @@ def check_llm_connection() -> bool:
 
         client = OpenAI(base_url=base_url, api_key=api_key)
         response = client.chat.completions.create(
+            extra_body={"chat_template_kwargs": {"enable_thinking": False}},
             model=model,
             messages=[
                 {"role": "system", "content": "Return only the final answer. Do not include reasoning text."},
@@ -70,14 +71,10 @@ def check_llm_connection() -> bool:
             temperature=0,
         )
         text = (response.choices[0].message.content or "").strip().lower()
-        reasoning = str(getattr(response.choices[0].message, "reasoning", "") or "").strip()
-        # Some local reasoning models return empty `content` while still succeeding.
-        success = ("setup-ok" in text) or bool(text) or bool(reasoning)
+        success = text == "setup-ok"
         print(f"Connection test: {'OK' if success else 'FAILED'}")
         if not success:
-            print(f"Raw response: {text}")
-        elif not text and reasoning:
-            print("Connection note: model returned reasoning-only output (content was empty).")
+            print(f"Expected setup-ok; received: {text or '[no final answer]'}")
         return success
     except Exception as exc:
         print(f"Connection test: FAILED ({exc})")
@@ -104,13 +101,13 @@ def main() -> int:
     if all_ok:
         print("\nNext:")
         print("uv run python src/genai_playground/fundamentals/model_basics.py")
-        print("\nNVIDIA lightweight model suggestions:")
+        print("\nNVIDIA demo models:")
         print(f"- Chat/Prompting: {NVIDIA_LEARNING_MODELS['chat']}")
         print(f"- Vision: {NVIDIA_LEARNING_MODELS['vision']}")
         print(f"- Embeddings: {NVIDIA_LEARNING_MODELS['embedding']}")
         print(f"- Image generation: {NVIDIA_LEARNING_MODELS['image']}")
         return 0
-    print("\nNVIDIA lightweight model suggestions:")
+    print("\nNVIDIA demo models:")
     print(f"- LLM_MODEL_ID={NVIDIA_LEARNING_MODELS['chat']}")
     print(f"- LLM_VISION_MODEL={NVIDIA_LEARNING_MODELS['vision']}")
     print(f"- LLM_EMBEDDING_MODEL={NVIDIA_LEARNING_MODELS['embedding']}")
